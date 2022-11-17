@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Generate a JWT</title>
+        <link rel="stylesheet" href="../index.css">
+    </head>
+    <body>
+        <h1>Generate a JWT</h1>
+        <p>
+            If you click the link below, you will be brought to a page 
+            that will ask you to login with your Google credentials. This
+            app will request access to your Google profile. After authorization,
+            your first and last name will be displayed along with a
+            JWT that can be used to authenticate with the /boats API.
+        </p>
+        <form method="POST" action="/">
+            <button type="submit">
+                Redirect to Google Login
+            </button>
+        </form>
+    </body>
+</html>

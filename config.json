@@ -1,0 +1,4 @@
+{
+    "DATA_BACKEND": "datastore",
+    "GCLOUD_PROJECT": "[portfolio-ellisos2]"
+}
