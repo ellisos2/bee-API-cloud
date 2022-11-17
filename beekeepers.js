@@ -11,27 +11,6 @@ const datastore = ds.datastore;
 
 router.use(bodyParser.json());
 
-
-/**
- * Convert the object resObj to an HTML format and send the file in the response
- * with the given status code.
- */
-function sendHTML(res, statusCode, resObj) {
-    // Learned to use the json2html library based on examples from the json2html 
-    // Get Started guide.
-    // https://json2html.com/started/
-
-    var template = {'<>':'ul','html':[
-        {'<>':'li','html':function(){return("name: " + this.name)}},
-        {'<>':'li','html':function(){return("type: " + this.type)}},
-        {'<>':'li','html':function(){return("id: " + this.id)}},
-        {'<>':'li','html':function(){return("length: " + this.length)}},
-        {'<>':'li','html':function(){return("self: " + this.self)}}
-    ]};
-    res.set("Content-Type", "text/html");
-    res.status(statusCode).send(json2html.render(resObj, template));
-};
-
 //----------------------------------------------------------------------------
 // Verificiation functions used to validate request input.
 //----------------------------------------------------------------------------
