@@ -12,6 +12,7 @@ const OAUTH2CLIENT = new google.auth.Oauth2(
 
 
 module.exports = {
+    USERS: 'Users',
     BEEKEEPERS: 'Beekeepers',
     QUEENS: 'Queens',
     HIVES: 'Hives',

@@ -1,9 +1,8 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 
-const json2html = require('node-json2html');
 const ds = require('./datastore');
-const { BOATS } = require('./constants');
+const { USERS } = require('./constants');
 
 const router = express.Router();
 
@@ -16,89 +15,34 @@ router.use(bodyParser.json());
 //----------------------------------------------------------------------------
 
 /**
- * Verify that the boat name is not already in use by another boat,
- * that the name is less than 50 characters, and that the name uses
- * only spaces and alphanumeric characters.
+ * Verify that the attribute uses only spaces and alphanumeric characters.
+ * Will not be used to validate date attributes.
+ * 
+ * Returns true if no errors are present, and false if non-alphanumeric
+ * characters are found.
  */
-function verifyName (name) {
-    const allBoats = datastore.createQuery(BOATS)
-    
+function verifyAttribute (attribute) {
     // Information about Regular Expressions learned through trial and error
     // based on the 'Regular Expressions Quick Start' Guide.
     // from: https://www.regular-expressions.info/quickstart.html
     const valid = /^[a-zA-Z0-9 ]+$/;
 
-    var foundBoats = [];
-    return datastore.runQuery(allBoats)
-        .then((result) => {
-            foundBoats = result[0]  // [0] index holds list of boats
-            foundBoats.map(ds.fromDatastore);
-
-            // throw an error if the boat name is too long
-            if (name.length > 50) {
-                throw new Error("name/type too long");
-            // throw an error if the boat type contains non-alphanumeric characters
-            } else if (!valid.test(name)) {
-                throw new Error("invalid characters");
-            } else {
-            // throw an error if the boat name is used by another boat
-                for (boat of foundBoats) {
-                    if (boat.name === name) {
-                        throw new Error("name already in use");
-                    }
-                }    
-                return;
-            }
-        });
-};
-
-/**
- * Verify that the boat type is less than 50 characters and uses
- * only spaces and alphanumeric characters.
- */
-function verifyType (type) {
-    // Information about Regular Expressions learned through trial and error
-    // based on the 'Regular Expressions Quick Start' Guide.
-    // from: https://www.regular-expressions.info/quickstart.html
-    const valid = /^[a-zA-Z0-9 ]+$/;
-
-    // throw an error if the boat type is too long
-    if (type.length > 50) {
-        throw new Error("name/type too long");
-    // throw an error if the boat type contains non-alphanumeric characters
-    } else if (!valid.test(type)) {
-        throw new Error("invalid characters");
+    if (!valid.test(attribute)) {
+        throw false;
     } else {
-        return;
-    };
-};
-
-/**
- * Verify that the boat length is an integer that is within the 
- * interval [0, 100,000].
- */
-function verifyLength (length) {
-    // throw an error if the boat name is too long
-    if (typeof(length) !== "number") {
-        throw new Error("invalid characters");
-    } else if (!Number.isInteger(length)) {
-        throw new Error("invalid characters");
-    } else if (length > 100000 || length < 0) {
-        throw new Error("length out of bounds");
-    } else {
-        return;
-    };
+        return true
+    }
 };
 
 //----------------------------------------------------------------------------
-// Model functions related to BOAT entities.
+// Model functions related to USER entities.
 //----------------------------------------------------------------------------
 
 /**
- * Function to create a new boat.
+ * Function to create a new user.
  * 
  * Schema: 
- *  name (string): name of the boat
+ *  name (string): name of the beekeeper
  *  type (string): type of the boat (e.g. sailboat)
  *  length (integer): length of the boat
  * 

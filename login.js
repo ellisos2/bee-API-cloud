@@ -10,6 +10,7 @@ const axios = require('axios');
 const path = require('path');
 
 const url = require('url');
+const { userInfo } = require('os');
 
 const router = express.Router();
 router.use(bodyParser.json());
@@ -41,17 +42,35 @@ function sendHTML(res, statusCode, idToken, resObj) {
 //----------------------------------------------------------------------------
 
 /**
- * Store the user's basic information, along with their user ID (the sub
- * field from the generated JWT).
+ * Function to create a new user (beekeeper).
+ * 
+ * Schema: 
+ *  firstName (string): first name of the user
+ *  lastName (string): last name of the user
+ *  userId (string): identification ID for the user (the sub field of the public_id)
+ *  isBeekeper (boolean): identifies the user as a verified beekeeper (default true)
+ *  hives (array): all hive entities currently managed by the beekeeper 
  */
-function storeUser(userId, firstName, lastName) {
-    var userKey = datastore.key(USERS);
-
-    const userData = { 'userId': userId, 'firstName': firstName, 'lastName': lastName };
-    const newUser = { 'key': stateKey, 'data': userData };
-
-    return datastore.save(newUser);
+function createUser (req, firstName, lastName, userId) {
+    var newUserKey = datastore.key(USERS);
+    const newUser = {'firstName': firstName,
+                        'lastName': lastName,
+                        'userId': userId,
+                        'isBeekeeper': true,
+                        'hives': [] 
+                    };
+    const user = { 'key': newUserKey, 'data': newUser };
+    
+    return datastore.save(user)
+        .then(() => {
+            const self = req.protocol + '://' + req.get('host') + req.baseUrl + '/' + newUserKey.id;
+            return { 'id': newUserKey.id, ...newUser, 'self': self };
+        })
+        .catch(error => {
+            throw error;
+        });
 };
+
 
 /**
  * Generate a URL to redirect the user to in order to request
@@ -130,15 +149,22 @@ router.get('/', (req, res) => {
  * token from the server.
  */
 router.get('/oauth', (req, res) => {
-    var idToken = "";
+    var userToken = {};
+    var idToken = '';
+    var userData = {};
     
     getServerToken(req)
         .then(token => {
+            userToken = token
             idToken = token.id_token;
             return getUserInfo(token);
         })
         .then(userInfo => {
-            sendHTML(res, 200, idToken, userInfo);
+            userData = userInfo;
+            return createUser(req, userInfo)
+        })
+        .then(() => {
+            sendHTML(res, 200, idToken, userData);
         })
         .catch(error => {
             res.status(500).json(error.message);

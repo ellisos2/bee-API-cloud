@@ -1,6 +1,6 @@
 const router = module.exports = require('express').Router();
 
-router.use('/beekeepers', require('./beekeepers'));
+router.use('/users', require('./users'));
 router.use('/hives', require('./hives'));
 router.use('/queens', require('./queens'));
 router.use('/', require('./login'));
