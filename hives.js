@@ -50,7 +50,7 @@ function verifyAttribute (attribute) {
  * 
  * All string attributes must be alphanumeric.
  */
-function createHive (req, hiveName, structureType, colonySize, ) {
+function createHive (req, hiveName, structureType, colonySize) {
     var newHiveKey = datastore.key(HIVES);
     const newHive = { 'hiveName': hiveName,
                         'structureType': type,
@@ -84,13 +84,11 @@ function getHives (req) {
     const allHivesQuery = datastore.createQuery(HIVES);
     const paginHivesQuery = datastore.createQuery(HIVES).limit(5);
 
-    var totalHives = 0;
     var foundHives = {};
     var foundHivesInfo = {};
 
     return datastore.runQuery(allHivesQuery)
         .then(hives => {
-            totalHives = hives[0].length();
             foundHives.total = hives[0].length();
             return datastore.runQuery(paginHivesQuery)
         })
@@ -111,70 +109,73 @@ function getHives (req) {
 };
 
 /**
- * Retrieve the boat with the given ID.
+ * Retrieve the hive with the given ID.
  * If not found, throw an error.
  * Response includes the self link.
  */
-function getBoat (req, id) {
-    const boatKey = datastore.key([BOATS, parseInt(id, 10)]);
+function getHive (req, hiveId) {
+    const hiveKey = datastore.key([HIVES, parseInt(hiveId, 10)]);
 
-    return datastore.get(boatKey)
-        .then((boat) => {
-            // Do nothing if the boat is not found. 
-            if (boat[0] === undefined || boat[0] === null) {
-                throw new Error("Boat not found");
+    return datastore.get(hiveKey)
+        .then(hive => {
+            // Do nothing if the hive is not found. 
+            if (hive[0] === undefined || hive[0] === null) {
+                throw new Error('hive not found');
             } else {
-                // Save self link and return object containining all boat data
-                const boatRes = boat.map(ds.fromDatastore)[0];
-                const self = req.protocol + "://" + req.get("host") + req.baseUrl + "/" + boatRes.id;
-                boatRes.self = self;
-                return boatRes;
+                // Save self link and return object containining all hive data
+                const hiveObj = boat.map(ds.fromDatastore)[0];
+                const self = req.protocol + '://' + req.get('host') + req.baseUrl + '/' + hiveObj.hiveId;
+                hiveObj.self = self;
+                return hiveObj;
             };
         });
 };
 
 /**
- * Delete the boat with the given ID.
+ * Delete the hive with the given ID.
  * If not found, throw an error.
  */
-function deleteBoat (req, boatId) {
-    const boatKey = datastore.key([BOATS, parseInt(boatId, 10)]);
+function deleteHive (req, hiveId) {
+    const hiveKey = datastore.key([HIVES, parseInt(hiveId, 10)]);
 
-    return datastore.get(boatKey)
-        .then((boat) => {
-            if (boat[0] == null) {
-                throw new Error("Boat not found")
+    return datastore.get(hiveKey)
+        .then(hive => {
+            if (hive[0] == null) {
+                throw new Error('Hive not found');
             } else {
-                // delete the boat
-                return datastore.delete(boatKey);
+                // delete the hive
+                return datastore.delete(hiveKey);
             }
         })
-        .catch((error) => {
+        .catch(error => {
             throw new Error(error.message);
         });
 };
 
 /**
- * Update all of the attributes of the boat with ID passed to updateBoat.
+ * Update all of the attributes of the hive with ID passed to updateHive.
+ * 
+ * The Queen attribute will not be updated. Updating a queen can be done 
+ * through the route 'PUT /hives/:hive_id/queens/:queen_id'
  */
-function putBoat (req, id, name, type, length) {
-    const boatKey = datastore.key([BOATS, parseInt(id, 10)]);
-    const boat = { "name": name, "type": type, "length": length };
+function putHive (req, hiveId, hiveName, structureType, colonySize) {
+    const hiveKey = datastore.key([HIVES, parseInt(hiveId, 10)]);
+    const newHive = { 'hiveName': hiveName,
+                        'structureType': structureType,
+                        'colonySize': colonySize
+                    };
 
-    // Verify name, type, and length before saving to datastore
-    return verifyName(name)
+    // Verify hiveName and structureType before saving to datastore
+    return verifyAttribute(hiveName)
         .then(() => {
-            verifyType(type);
+            verifyAttribute(structureType);
         })
         .then(() => {
-            verifyLength(length);
+            return datastore.save({ 'key': hiveKey, 'data': newHive });
         })
         .then(() => {
-            return datastore.save({ "key": boatKey, "data": boat });
-        })
-        .then(() => {
-            const self = req.protocol + "://" + req.get("host") + req.baseUrl + "/" + boatKey.id;
-            return { "id": boatKey.id, ...boat, "self": self };
+            const self = req.protocol + '://' + req.get('host') + req.baseUrl + '/' + hiveKey.id;
+            return { 'id': hiveKey.id, ...newHive, 'self': self };
         })
         .catch(error => {
             throw error;
@@ -182,49 +183,46 @@ function putBoat (req, id, name, type, length) {
 };
 
 /**
- * Update any attributes of the boat with ID passed to updateBoat.
+ * Update any attributes of the hive with ID passed to updateBoat.
+ * 
+ * The Queen attribute will not be updated. Updating a queen can be done 
+ * through the route 'PUT /hives/:hive_id/queens/:queen_id'
  */
-function patchBoat (req, id, name, type, length) {
-    const boatKey = datastore.key([BOATS, parseInt(id, 10)]);
-    var foundBoat = {};
+function patchHive (req, hiveId, hiveName, structureType, colonySize) {
+    const hiveKey = datastore.key([HIVES, parseInt(hiveId, 10)]);
+    var foundHive = {};
 
-    return datastore.get(boatKey)
-        .then((boat) => {
-            // save boat data and verify name input
-            foundBoat = boat.map(ds.fromDatastore)[0];
-            if (name != null) {
-                foundBoat.name = name;
-                return verifyName(name);
-            } else {
-                return;
-            }  
-        })
-        .then(() => {
-            // verify type input (if applicable)
-            if (type != null) {
-                foundBoat.type = type;
-                return verifyType(type);
+    return datastore.get(hiveKey)
+        .then(hive => {
+            // save hive data and verify hiveName input
+            foundHive = hive.map(ds.fromDatastore)[0];
+            if (hiveName != null) {
+                foundBoat.hiveName = hiveName;
+                return verifyAttribute(hiveName);
             } else {
                 return;
             }
         })
         .then(() => {
-            // verify length input (if applicable)
-            if (length != null) {
-                foundBoat.length = length;
-                return verifyLength(length);
+            // verify structureType input (if applicable)
+            if (structureType != null) {
+                foundHive.structureType = structureType;
+                return verifyAttribute(structureType);
             } else {
                 return;
             }
         })
         .then(() => {
-            const data = { "name": foundBoat.name, "type": foundBoat.type, "length": foundBoat.length }
-            return datastore.save({ "key": boatKey, "data": data });
+            const data = { 'hiveName': foundHive.hiveName,
+                            'structureType': foundHive.structureType,
+                            'colonySize': foundHive.colonySize
+                        };
+            return datastore.save({ 'key': hiveKey, 'data': data });
         })
         .then(() => {
-            const self = req.protocol + "://" + req.get("host") + req.baseUrl + "/" + boatKey.id;
-            foundBoat.self = self;
-            return foundBoat;
+            const self = req.protocol + '://' + req.get('host') + req.baseUrl + '/' + hiveKey.id;
+            foundHive.self = self;
+            return foundHive;
         })
         .catch(error => {
             throw error;
@@ -243,9 +241,7 @@ router.post('/', function (req, res) {
     if (req.get('Content-Type') !== 'application/json') {
         res.status(415).json({ Error: 'Unsupported MIME type received - server can only accept application/json' });
 
-    } else if (req.body.hiveName === undefined ||
-                req.body.structureType === undefined ||
-                req.body.colonySize === undefined) {
+    } else if (req.body.hiveName === undefined || req.body.structureType === undefined || req.body.colonySize === undefined) {
         res.status(400).json({ Error: 'The request object is missing at least one of the required attributes' });
 
     } else {
@@ -264,7 +260,7 @@ router.post('/', function (req, res) {
                 }
             })
             .catch(error => {
-                if (error.message === "invalid characters") {
+                if (error.message === 'invalid characters') {
                     res.status(400).json({ Error: 'hiveName and structureType must include only alphanumeric characters' });
                 } else {
                     res.status(404).json({ Error: error.message });
@@ -285,9 +281,105 @@ router.get('/', function (req, res) {
 });
 
 /**
+ * Handle GET requests to /hives/:hive_id to get the hive with the given ID.
+ * Response is a 404 error if no hive is found with given ID.
+ */
+router.get('/:hive_id', function (req, res) {
+    getBoat(req, req.params.hive_id)
+        .then(boat => {
+            // req.accepts() returns content type if found, and False if none found
+            // Source: https://www.tutorialspoint.com/express-js-req-accepts-method
+            const accepts = req.accepts(['application/json', 'text/html']);
+            
+            // determine the appropriate MIME type to send based on the request
+            if (!accepts) {
+                res.status(406).json({ Error: 'Unsupported MIME type requested - only application/json supported' });
+            } else if (accepts === 'application/json') {
+                res.set('Content-Type', 'application/json');
+                res.status(200).json(boat);
+            } else {
+                res.status(500).json({ Error: 'Unknown server error' })
+            };
+        })
+        .catch(error => {
+            res.status(404).json({ Error: 'No boat with this boat_id exists' });
+        });
+});
+
+/**
+ * Handle DELETE requests to /hives/:hive_id to delete the hive with the given ID.
+ * Response is a 404 error if no hive is found with given ID or the user
+ * is not authenticated.
+ */
+router.delete('/:hive_id', function (req, res) {
+    deleteHive(req, req.params.hive_id)
+        .then(() => {
+            res.status(204).end();
+        })
+        .catch(error => {
+            res.status(404).json({ Error: 'No hive with this hive_id exists' });
+        });
+});
+
+/**
+ * Handle PUT requests to /hives/:hive_id to replace a hive's attributes. No changes will be
+ * made if hiveName, structureType, or colonySize is missing from the request.
+ */
+router.put('/:hive_id', function (req, res) {
+    if (req.get('Content-Type') !== 'application/json') {
+        res.status(415).json({ Error: 'Unsupported MIME type received - server can only accept application/json' });
+    
+    } else if (req.body.hiveName === undefined || req.body.structureType === undefined || req.body.colonySize === undefined) {
+        res.status(400).json({ Error: 'The request object is missing at least one of the required attributes' });
+    
+    } else {
+        putHive(req, req.params.hive_id, req.body.hiveName, req.body.structureType, req.body.colonySize)
+            .then(hive => {            
+                res.location(hive.self);
+                res.set('Content-Type', 'application/json');
+                res.status(303).json(hive);
+            })
+            .catch(error => {
+                if (error.message === 'invalid characters') {
+                    res.status(400).json({ Error: 'hiveName and structureType must include only alphanumeric characters' });
+                } else {
+                    res.status(404).json({ Error: error.message });
+                }
+            });
+    };
+});
+
+/**
+ * Handle PATCH requests to /hives/:hive_id to update a hive. Allows for individual 
+ * attributes to be changed on a hive entity.
+ */
+router.patch('/:hive_id', function (req, res) {
+    if (req.get('Content-Type') !== 'application/json') {
+        res.status(415).json({ Error: 'Unsupported MIME type received - server can only accept application/json' });
+    } else {
+        patchHive(req, req.params.hive_id, req.body.hiveName, req.body.structureType, req.body.colonySize)
+            .then(hive => {
+                res.set('Content-Type', 'application/json');
+                res.status(200).json(hive);
+            })
+            .catch(error => {
+                if (error.message === 'invalid characters') {
+                    res.status(400).json({ Error: 'hiveName and structureType must include only alphanumeric characters' });
+                } else {
+                    res.status(404).json({ Error: error.message });
+                }
+            });
+    };
+});
+
+//----------------------------------------------------------------------------
+// WARNINGS for /hive route handlers
+//----------------------------------------------------------------------------
+
+/**
  * Warn that PUT requests to /hives are not supported.
  */
-router.put('/', function (req, res) {
+ router.put('/', function (req, res) {
     res.set('Accept', 'Get, Post');
     res.status(405).json({ Error: "Acceptable reqests to /hives: GET, POST" });
 });
@@ -309,116 +401,11 @@ router.patch('/', function (req, res) {
 });
 
 /**
- * Handle GET requests to /boats/:boat_id to get the boat with the given ID.
- * Response is a 404 error if no boat is found with given ID.
+ * Warn that POST requests to /hives/:hive_id are not supported.
  */
-router.get('/:boat_id', function (req, res) {
-    getBoat(req, req.params.boat_id)
-        .then(boat => {
-            // req.accepts() returns content type if found, and False if none found
-            // Source: https://www.tutorialspoint.com/express-js-req-accepts-method
-            const accepts = req.accepts(["application/json", "text/html"]);
-            
-            // determine the appropriate MIME type to send based on the request
-            if (!accepts) {
-                res.status(406).json({ Error: "Unsupported MIME type requested - only application/json and text/html supported" });
-            } else if (accepts === "application/json") {
-                res.set("Content-Type", "application/json");
-                res.status(200).json(boat);
-            } else if (accepts === "text/html") {
-                sendHTML(res, 200, boat);
-            } else {
-                res.status(500).json({ Error: "Unknown server error" })
-            };
-        })
-        .catch(error => {
-            res.status(404).json({ Error: 'No boat with this boat_id exists' });
-        });
-});
-
-/**
- * Handle DELETE requests to /boats/:boat_id to delete the boat with the given ID.
- * Response is a 404 error if no boat is found with given ID.
- */
-router.delete('/:boat_id', function (req, res) {
-    deleteBoat(req, req.params.boat_id)
-        .then(() => {
-            res.status(204).end();
-        })
-        .catch(error => {
-            res.status(404).json({ Error: 'No boat with this boat_id exists' });
-        });
-});
-
-/**
- * Handle PUT requests to /boats/:boat_id to replace a boat's attributes. No changes will be
- * made if name, type, or length is missing from the request.
- */
-router.put('/:boat_id', function (req, res) {
-    if (req.get("Content-Type") !== "application/json") {
-        res.status(415).json({ Error: "Unsupported MIME type received - server can only accept application/json" });
-    
-    } else if (req.body.name === undefined || req.body.type === undefined || req.body.length === undefined) {
-        res.status(400).json({ Error: 'The request object is missing at least one of the required attributes' });
-    
-    } else {
-        putBoat(req, req.params.boat_id, req.body.name, req.body.type, req.body.length)
-            .then(boat => {            
-                res.location(boat.self);
-                res.set("Content-Type", "application/json");
-                res.status(303).json(boat);
-            })
-            .catch(error => {
-                if (error.message === "name already in use") {
-                    res.status(403).json({ Error: "That boat name is already in use" });
-                } else if (error.message === "name/type too long") {
-                    res.status(400).json({ Error: "That boat name or type is too long (must be =< 50 characters)" });
-                } else if (error.message === "invalid characters") {
-                    res.status(400).json({ Error: "name and type must include only alphanumeric characters and length must be a positive integer" })
-                } else if (error.message === "length out of bounds") {
-                    res.status(400).json({ Error: "length must be an integer value in the interval [0, 100,000]" });
-                } else {
-                    res.status(500).json({ Error: "Unknown server error" });
-                }
-            });
-    };
-});
-
-/**
- * Handle PATCH requests to /boats/:boat_id to update a boat. Allows for individual 
- * attributes to be changed on a boat entity.
- */
-router.patch('/:boat_id', function (req, res) {
-    if (req.get("Content-Type") !== "application/json") {
-        res.status(415).json({ Error: "Unsupported MIME type received - server can only accept application/json" });
-    } else {
-        patchBoat(req, req.params.boat_id, req.body.name, req.body.type, req.body.length)
-        .then(boat => {
-            res.set("Content-Type", "application/json");
-            res.status(200).json(boat);
-        })
-        .catch(error => {
-            if (error.message === "name already in use") {
-                res.status(403).json({ Error: "That boat name is already in use" });
-            } else if (error.message === "name/type too long") {
-                res.status(400).json({ Error: "That boat name or type is too long (must be =< 50 characters)" });
-            } else if (error.message === "invalid characters") {
-                res.status(400).json({ Error: "name and type must include only alphanumeric characters and length must be a positive integer" })
-            } else if (error.message === "length out of bounds") {
-                res.status(400).json({ Error: "length must be an integer value in the interval [0, 100,000]" });
-            } else {
-                res.status(500).json({ Error: "Unknown server error" });
-            }
-        });
-    };
-});
-
-/**
- * Warn that POST requests to /boats/:boat_id are not supported.
- */
-router.post('/:boat_id', function (req, res) {
+router.post('/:hive_id', function (req, res) {
     res.set('Accept', 'Get, Put, Delete, Patch');
-    res.status(405).json({ Error: "Acceptable reqests to /boats/:boat_id: GET, PUT, DELETE, PATCH" });
+    res.status(405).json({ Error: 'Acceptable reqests to /hives/:hive_id: GET, PUT, DELETE, PATCH' });
 })
 
 //----------------------------------------------------------------------------
