@@ -2,7 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 
 const ds = require('./datastore');
-const { USERS, HIVES } = require('./constants');
+const { OAUTH2CLIENT, CLIENT_ID, USERS, HIVES } = require('./constants');
 
 const router = express.Router();
 
@@ -11,8 +11,33 @@ const datastore = ds.datastore;
 router.use(bodyParser.json());
 
 //----------------------------------------------------------------------------
-// Verificiation functions used to validate request input.
+// Authentication and verificiation functions used to authenticate users 
+// and validate request input.
 //----------------------------------------------------------------------------
+
+/**
+ * Use the Google API to verify the JWT of the request.
+ * Structure and code based on the example from the 
+ * 'Authenticate with a backend server' guide at
+ * https://developers.google.com/identity/sign-in/web/backend-auth
+ */
+ function verifyJwt (token) {
+    verificationParams = {
+        'idToken': token,
+        'audience': CLIENT_ID
+    };
+
+    return OAUTH2CLIENT.verifyIdToken(verificationParams)
+        .then(ticket => {
+            return ticket.getPayload(); 
+        })
+        .then(payload => {
+            return payload['sub'];
+        })
+        .catch(error => {
+            throw error;
+        });
+};
 
 /**
  * Verify that the attribute uses only spaces and alphanumeric characters.
@@ -51,16 +76,25 @@ function verifyAttribute (attribute) {
  * All string attributes must be alphanumeric.
  */
 function createHive (req, hiveName, structureType, colonySize) {
+    if (req.headers.authorization === undefined) {
+        throw new Error('Missing or invalid JWT');
+    }
+    
     var newHiveKey = datastore.key(HIVES);
     const newHive = { 'hiveName': hiveName,
-                        'structureType': type,
+                        'structureType': structureType,
                         'colonySize': colonySize,
                         'queen': {}
                     };
     const hive = { 'key': newHiveKey, 'data': newHive };
+    // remove the bearer suffix
+    const idToken = req.headers.authorization.substr(7);
     
-    // Verify hiveName and structureType before saving to datastore
-    return verifyAttribute(hiveName)
+    return verifyJwt(idToken)
+        .then(owner => {
+            // Verify hiveName and structureType before saving to datastore
+            return verifyAttribute(hiveName)
+        })
         .then(() => {
             verifyAttribute(structureType);
         })
@@ -93,7 +127,7 @@ function getHives (req) {
             return datastore.runQuery(paginHivesQuery)
         })
         .then(hives => {
-            foundHives.hives = hives[0]; // boat entities as a list
+            foundHives.hives = hives[0]; // hive entities as a list
             foundHivesInfo = hives[1]; // query information
             foundHives.hives.map(ds.fromDatastore);
             
@@ -123,8 +157,8 @@ function getHive (req, hiveId) {
                 throw new Error('hive not found');
             } else {
                 // Save self link and return object containining all hive data
-                const hiveObj = boat.map(ds.fromDatastore)[0];
-                const self = req.protocol + '://' + req.get('host') + req.baseUrl + '/' + hiveObj.hiveId;
+                const hiveObj = hive.map(ds.fromDatastore)[0];
+                const self = req.protocol + '://' + req.get('host') + req.baseUrl + '/' + hiveObj.id;
                 hiveObj.self = self;
                 return hiveObj;
             };
@@ -183,7 +217,7 @@ function putHive (req, hiveId, hiveName, structureType, colonySize) {
 };
 
 /**
- * Update any attributes of the hive with ID passed to updateBoat.
+ * Update any attributes of the hive with ID passed to updateHive.
  * 
  * The Queen attribute will not be updated. Updating a queen can be done 
  * through the route 'PUT /hives/:hive_id/queens/:queen_id'
@@ -197,7 +231,7 @@ function patchHive (req, hiveId, hiveName, structureType, colonySize) {
             // save hive data and verify hiveName input
             foundHive = hive.map(ds.fromDatastore)[0];
             if (hiveName != null) {
-                foundBoat.hiveName = hiveName;
+                foundHive.hiveName = hiveName;
                 return verifyAttribute(hiveName);
             } else {
                 return;
@@ -245,7 +279,7 @@ router.post('/', function (req, res) {
         res.status(400).json({ Error: 'The request object is missing at least one of the required attributes' });
 
     } else {
-        createBoat(req, req.body.hiveName, req.body.structureType, req.body.colonySize)
+        createHive(req, req.body.hiveName, req.body.structureType, req.body.colonySize)
             .then(hive => {
                 // req.accepts() returns content type if found, and False if none found
                 // Source: https://www.tutorialspoint.com/express-js-req-accepts-method
@@ -262,6 +296,8 @@ router.post('/', function (req, res) {
             .catch(error => {
                 if (error.message === 'invalid characters') {
                     res.status(400).json({ Error: 'hiveName and structureType must include only alphanumeric characters' });
+                } else if (error.message === 'Missing or invalid JWT') {
+                    res.status(401).json({ Error: error.message });
                 } else {
                     res.status(404).json({ Error: error.message });
                 }
@@ -285,8 +321,8 @@ router.get('/', function (req, res) {
  * Response is a 404 error if no hive is found with given ID.
  */
 router.get('/:hive_id', function (req, res) {
-    getBoat(req, req.params.hive_id)
-        .then(boat => {
+    getHive(req, req.params.hive_id)
+        .then(hive => {
             // req.accepts() returns content type if found, and False if none found
             // Source: https://www.tutorialspoint.com/express-js-req-accepts-method
             const accepts = req.accepts(['application/json', 'text/html']);
@@ -296,13 +332,13 @@ router.get('/:hive_id', function (req, res) {
                 res.status(406).json({ Error: 'Unsupported MIME type requested - only application/json supported' });
             } else if (accepts === 'application/json') {
                 res.set('Content-Type', 'application/json');
-                res.status(200).json(boat);
+                res.status(200).json(hive);
             } else {
                 res.status(500).json({ Error: 'Unknown server error' })
             };
         })
         .catch(error => {
-            res.status(404).json({ Error: 'No boat with this boat_id exists' });
+            res.status(404).json({ Error: 'No hive with this hive_id exists' });
         });
 });
 

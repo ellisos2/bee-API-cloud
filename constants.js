@@ -3,8 +3,8 @@ const { google } = require('googleapis');
 const DOMAIN = 'http://localhost:8080';
 const CLIENT_ID = '591778857481-rdimi6ttmk0f93qjb7ua3e8hmngvsair.apps.googleusercontent.com';
 const CLIENT_SECRET = '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';
-const REDIRECT_URL = 'http:localhost:8080/oauth';
-const OAUTH2CLIENT = new google.auth.Oauth2(
+const REDIRECT_URL = 'http://localhost:8080/oauth';
+const OAUTH2CLIENT = new google.auth.OAuth2(
     CLIENT_ID,
     CLIENT_SECRET,
     REDIRECT_URL

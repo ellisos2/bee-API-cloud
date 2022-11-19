@@ -10,7 +10,6 @@ const axios = require('axios');
 const path = require('path');
 
 const url = require('url');
-const { userInfo } = require('os');
 
 const router = express.Router();
 router.use(bodyParser.json());
@@ -79,9 +78,9 @@ function createUser (req, firstName, lastName, userId) {
 function getAuthorizationURL() {
     // URL created will request permission for user profile information
     const authorizationUrl = OAUTH2CLIENT.generateAuthUrl({
-        "access_type": "online",
-        "scope": "profile",
-        "include_granted_scopes": true
+        'access_type': 'online',
+        'scope': 'profile',
+        'include_granted_scopes': true
     });
 
     return authorizationUrl;
@@ -117,15 +116,14 @@ function getServerToken(req) {
  */
 function getUserInfo(token) {
     const request = {
-        "method": "get",
-        "url": "https://people.googleapis.com/v1/people/me?personFields=names",
-        "headers": { "Authorization": "Bearer " + token.access_token }
+        'method': 'get',
+        'url': 'https://people.googleapis.com/v1/people/me?personFields=names',
+        'headers': { 'Authorization': 'Bearer ' + token.access_token }
     };
 
     return axios(request)
         .then(response => {
-            const names = response.data.names[0];
-            return names;
+            return response.data.names[0];  // names fields
         })
         .catch(error => {
             throw error;
@@ -150,21 +148,19 @@ router.get('/', (req, res) => {
  */
 router.get('/oauth', (req, res) => {
     var userToken = {};
-    var idToken = '';
     var userData = {};
     
     getServerToken(req)
         .then(token => {
-            userToken = token
-            idToken = token.id_token;
+            userToken = token;
             return getUserInfo(token);
         })
         .then(userInfo => {
             userData = userInfo;
-            return createUser(req, userInfo)
+            return createUser(req, userInfo);
         })
         .then(() => {
-            sendHTML(res, 200, idToken, userData);
+            sendHTML(res, 200, userToken.id_token, userData);
         })
         .catch(error => {
             res.status(500).json(error.message);

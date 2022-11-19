@@ -3,7 +3,7 @@ const bodyParser = require('body-parser');
 
 const ds = require('./datastore');
 const { BOATS, LOADS } = require('./constants');
-const removeLoad = require('./boats').removeLoad;
+//const removeLoad = require('./boats').removeLoad;
 
 const router = express.Router();
 
