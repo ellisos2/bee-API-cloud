@@ -84,7 +84,7 @@ function createHive (req, hiveName, structureType, colonySize) {
     const newHive = { 'hiveName': hiveName,
                         'structureType': structureType,
                         'colonySize': colonySize,
-                        'queen': {}
+                        'queen': null
                     };
     const hive = { 'key': newHiveKey, 'data': newHive };
     // remove the bearer suffix
