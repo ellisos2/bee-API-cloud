@@ -2,7 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 
 const ds = require('./datastore');
-const { OAUTH2CLIENT, CLIENT_ID, USERS, HIVES } = require('./constants');
+const { OAUTH2CLIENT, CLIENT_ID, USERS, HIVES, QUEENS } = require('./constants');
 
 const router = express.Router();
 
@@ -219,7 +219,7 @@ function putHive (req, hiveId, hiveName, structureType, colonySize) {
 /**
  * Update any attributes of the hive with ID passed to updateHive.
  * 
- * The Queen attribute will not be updated. Updating a queen can be done 
+ * The Queen attribute will not be updated. Assigning a queen can be done 
  * through the route 'PUT /hives/:hive_id/queens/:queen_id'
  */
 function patchHive (req, hiveId, hiveName, structureType, colonySize) {
@@ -257,6 +257,53 @@ function patchHive (req, hiveId, hiveName, structureType, colonySize) {
             const self = req.protocol + '://' + req.get('host') + req.baseUrl + '/' + hiveKey.id;
             foundHive.self = self;
             return foundHive;
+        })
+        .catch(error => {
+            throw error;
+        });
+};
+
+/**
+ * Update the hive with hive_id to contain the queen with queen_id.
+ * The queen object with queen_id is updated to now operate in this hive.
+ * Error is returned if the user is not authenticated, the hive is not
+ * found, or the queen already has a hive.
+ */
+function assignQueen (req, hiveId, queenId) {
+    const hiveKey = datastore.key([HIVES, parseInt(hiveId, 10)]);
+    const queenKey = datastore.key([QUEENS, parseInt(queenId, 10)]);
+
+    var foundHive = {};
+
+    // search for hive with given hiveId, if not found throw error
+    return datastore.get(hiveKey)
+        .then(hive => {
+            if (hive[0] == null) {
+                throw new Error('Hive and/or queen not found');
+            } else {
+                foundHive = hive;
+                return datastore.get(queenKey);
+            };
+        })
+        .then(queen => {
+            // if hive with given ID not found, throw error
+            if (queen[0] == null) {
+                throw new Error('Hive and/or queen not found');
+            } else if (queen[0].hive != null) {
+                throw new Error('Queen is already assigned');
+            } else {
+                // update the found queen to show the found hive as its carrier
+                const hiveSelf = req.protocol + '://' + req.get('host') + '/hives/' + hiveKey.id;
+                const hive = { 'id': hiveKey.id, 'hiveName': foundHive[0].name, 'self': hiveSelf };
+                queen[0].hive = hive;
+                return datastore.save(queen[0]);
+            };
+        })
+        .then(() => {
+        // update the found hive to include the queen in its array of loads
+            const queenSelf = req.protocol + '://' + req.get('host') + '/loads/' + queenKey.id;
+            foundHive[0].loads.push({ 'id': queenKey.id, 'self': queenSelf });
+            return datastore.save(foundHive[0]);
         })
         .catch(error => {
             throw error;
@@ -379,7 +426,7 @@ router.put('/:hive_id', function (req, res) {
                 if (error.message === 'invalid characters') {
                     res.status(400).json({ Error: 'hiveName and structureType must include only alphanumeric characters' });
                 } else {
-                    res.status(404).json({ Error: error.message });
+                    res.status(404).json({ Error: 'No hive with this hive_id exists' });
                 }
             });
     };
@@ -402,10 +449,31 @@ router.patch('/:hive_id', function (req, res) {
                 if (error.message === 'invalid characters') {
                     res.status(400).json({ Error: 'hiveName and structureType must include only alphanumeric characters' });
                 } else {
-                    res.status(404).json({ Error: error.message });
+                    res.status(404).json({ Error: 'No hive with this hive_id exists' });
                 }
             });
     };
+});
+
+/**
+ * Handle PUT requests to /hives/:hive_id/queens/:queen_id to assign a queen to 
+ * a hive. No changes will be made if:
+ *   - The user is not authenticated.
+ *   - Either the hive or queen does not exist.
+ *   - The queen is already living with another hive.
+ */
+router.put('/:hive_id/queens/:queen_id', function (req, res) {
+    assignLoad(req, req.params.hive_id, req.params.queen_id)
+        .then(() => {
+            res.status(204).end();
+        })
+        .catch(error => {
+            if (error.message === 'Hive and/or queen not found') {
+                res.status(404).json({ Error: error.message });
+            } else if (error.message === 'Queen is already assigned') {
+                res.status(403).json({ Error: error.message })
+            }
+        });
 });
 
 //----------------------------------------------------------------------------

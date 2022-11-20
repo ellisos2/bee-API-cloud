@@ -159,7 +159,7 @@ function getQueen (req, queenId) {
  * Delete the Queen with the given ID.
  * If not found, throw an error.
  */
-function deletequeen (req, queenId) {
+function deleteQueen (req, queenId) {
     const queenKey = datastore.key([QUEENS, parseInt(queenId, 10)]);
 
     return datastore.get(queenKey)
@@ -369,7 +369,7 @@ router.put('/:queen_id', function (req, res) {
                 if (error.message === 'invalid characters') {
                     res.status(400).json({ Error: 'Name and species must include only alphanumeric characters' });
                 } else {
-                    res.status(404).json({ Error: error.message });
+                    res.status(404).json({ Error: 'No queen with this queen_id exists' });
                 }
             });
     };
@@ -392,7 +392,7 @@ router.patch('/:queen_id', function (req, res) {
                 if (error.message === 'invalid characters') {
                     res.status(400).json({ Error: 'Name and species must include only alphanumeric characters' });
                 } else {
-                    res.status(404).json({ Error: error.message });
+                    res.status(404).json({ Error: 'No queen with this queen_id exists' });
                 }
             });
     };
