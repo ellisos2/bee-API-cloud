@@ -48,15 +48,13 @@ function sendHTML(res, statusCode, idToken, resObj) {
  *  lastName (string): last name of the user
  *  userId (string): identification ID for the user (the sub field of the public_id)
  *  isBeekeper (boolean): identifies the user as a verified beekeeper (default true)
- *  hives (array): all hive entities currently managed by the beekeeper 
  */
 function createUser (req, firstName, lastName, userId) {
     var newUserKey = datastore.key(USERS);
     const newUser = {'firstName': firstName,
                         'lastName': lastName,
                         'userId': userId,
-                        'isBeekeeper': true,
-                        'hives': [] 
+                        'isBeekeeper': true
                     };
     const user = { 'key': newUserKey, 'data': newUser };
     

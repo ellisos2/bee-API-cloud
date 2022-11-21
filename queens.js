@@ -16,30 +16,6 @@ router.use(bodyParser.json());
 //----------------------------------------------------------------------------
 
 /**
- * Use the Google API to verify the JWT of the request.
- * Structure and code based on the example from the 
- * 'Authenticate with a backend server' guide at
- * https://developers.google.com/identity/sign-in/web/backend-auth
- */
- function verifyJwt (token) {
-    verificationParams = {
-        'idToken': token,
-        'audience': CLIENT_ID
-    };
-
-    return OAUTH2CLIENT.verifyIdToken(verificationParams)
-        .then(ticket => {
-            return ticket.getPayload(); 
-        })
-        .then(payload => {
-            return payload['sub'];
-        })
-        .catch(error => {
-            throw error;
-        });
-};
-
-/**
  * Verify that the attribute uses only spaces and alphanumeric characters.
  * Will not be used to validate date attributes.
  * 
@@ -55,7 +31,7 @@ function verifyAttribute (attribute) {
     if (!valid.test(attribute)) {
         throw new Error('invalid characters');
     } else {
-        return;
+        return Promise.resolve();
     }
 };
 
@@ -89,7 +65,7 @@ function createQueen (req, name, species, age) {
             verifyAttribute(species);
         })
         .then(() => {
-            return datastore.save(queen)
+            return datastore.save(queen);
         })
         .then(() => {
             const self = req.protocol + '://' + req.get('host') + req.baseUrl + '/' + newQueenKey.id;
@@ -114,7 +90,7 @@ function getQueens (req) {
     return datastore.runQuery(allQueensQuery)
         .then(queens => {
             foundQueens.total = queens[0].length();
-            return datastore.runQuery(paginQueensQuery)
+            return datastore.runQuery(paginQueensQuery);
         })
         .then(queens => {
             foundQueens.queens = queens[0]; // queen entities as a list
@@ -237,9 +213,13 @@ function patchQueen (req, queenId, name, species, age) {
             }
         })
         .then(() => {
+            if (age != null) {
+                foundQueen.age = age;
+            }
             const data = { 'name': foundQueen.name,
                             'species': foundQueen.species,
-                            'age': foundQueen.age
+                            'age': foundQueen.age,
+                            'hive': foundQueen.hive
                         };
             return datastore.save({ 'key': queenKey, 'data': data });
         })
@@ -324,7 +304,7 @@ router.get('/:queen_id', function (req, res) {
                 res.set('Content-Type', 'application/json');
                 res.status(200).json(queen);
             } else {
-                res.status(500).json({ Error: 'Unknown server error' })
+                res.status(500).json({ Error: 'Unknown server error' });
             };
         })
         .catch(error => {
