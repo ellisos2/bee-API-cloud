@@ -49,25 +49,23 @@ function sendHTML(res, statusCode, idToken, resObj) {
  *  userId (string): identification ID for the user (the sub field of the public_id)
  *  isBeekeper (boolean): identifies the user as a verified beekeeper (default true)
  */
-function createUser (req, firstName, lastName, userId) {
+function createUser (userInfo) {
     var newUserKey = datastore.key(USERS);
-    const newUser = {'firstName': firstName,
-                        'lastName': lastName,
-                        'userId': userId,
+    const newUser = {'firstName': userInfo.givenName,
+                        'lastName': userInfo.familyName,
+                        'userId': userInfo.metadata.source.id,
                         'isBeekeeper': true
                     };
     const user = { 'key': newUserKey, 'data': newUser };
     
     return datastore.save(user)
         .then(() => {
-            const self = req.protocol + '://' + req.get('host') + req.baseUrl + '/' + newUserKey.id;
-            return { 'id': newUserKey.id, ...newUser, 'self': self };
+            return { 'id': newUserKey.id, ...newUser };
         })
         .catch(error => {
             throw error;
         });
 };
-
 
 /**
  * Generate a URL to redirect the user to in order to request
@@ -155,7 +153,7 @@ router.get('/oauth', (req, res) => {
         })
         .then(userInfo => {
             userData = userInfo;
-            return createUser(req, userInfo);
+            return createUser(userInfo);
         })
         .then(() => {
             sendHTML(res, 200, userToken.id_token, userData);

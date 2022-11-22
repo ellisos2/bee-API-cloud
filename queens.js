@@ -22,7 +22,7 @@ router.use(bodyParser.json());
  * Returns nothing if no errors are present, and throws an error if 
  * non-alphanumeric characters are found.
  */
-function verifyAttribute (attribute) {
+async function verifyAttribute (attribute) {
     // Information about Regular Expressions learned through trial and error
     // based on the 'Regular Expressions Quick Start' Guide.
     // from: https://www.regular-expressions.info/quickstart.html
@@ -62,7 +62,7 @@ function createQueen (req, name, species, age) {
 
     return verifyAttribute(name)
         .then(() => {
-            verifyAttribute(species);
+            return verifyAttribute(species);
         })
         .then(() => {
             return datastore.save(queen);
@@ -89,7 +89,7 @@ function getQueens (req) {
 
     return datastore.runQuery(allQueensQuery)
         .then(queens => {
-            foundQueens.total = queens[0].length();
+            foundQueens.total = queens[0].length;
             return datastore.runQuery(paginQueensQuery);
         })
         .then(queens => {
@@ -162,11 +162,18 @@ function putQueen (req, queenId, name, species, age) {
     const queenKey = datastore.key([QUEENS, parseInt(queenId, 10)]);
     const newQueen = { 'name': name,
                         'species': species,
-                        'age': age
+                        'age': age,
+                        'hive': null
                     };
 
-    // Verify name and species before saving to datastore
-    return verifyAttribute(name)
+    return datastore.get(queenKey)
+        // Check if the queen entity already existed and was assigned to a hive
+        .then(queen => {
+            if (queen[0] != null) {
+                newQueen.hive = queen[0].hive;
+            }
+            return verifyAttribute(name);
+        })
         .then(() => {
             verifyAttribute(species);
         })
@@ -282,7 +289,15 @@ router.post('/', function (req, res) {
 router.get('/', function (req, res) {
     getQueens(req)
         .then(queens => {
-            res.status(200).json(queens);
+            const accepts = req.accepts(['application/json', 'text/html']);
+            
+            // determine the appropriate MIME type to send based on the request
+            if (!accepts) {
+                res.status(406).json({ Error: 'Unsupported MIME type requested - only application/json supported' });
+            } else if (accepts === 'application/json') {
+                res.set('Content-Type', 'application/json');
+                res.status(200).json(queens);
+            }
         });
 });
 
@@ -341,9 +356,14 @@ router.put('/:queen_id', function (req, res) {
     } else {
         putQueen(req, req.params.queen_id, req.body.name, req.body.species, req.body.age)
             .then(queen => {            
-                res.location(queen.self);
-                res.set('Content-Type', 'application/json');
-                res.status(303).json(queen);
+                const accepts = req.accepts(['application/json']);
+                if (!accepts) {
+                    res.status(406).json({ Error: 'Unsupported MIME type requested - only application/json supported' });
+                } else if (accepts === 'application/json') {  
+                    res.location(queen.self);
+                    res.set('Content-Type', 'application/json');
+                    res.status(303).json(queen);
+                }
             })
             .catch(error => {
                 if (error.message === 'invalid characters') {
@@ -365,8 +385,14 @@ router.patch('/:queen_id', function (req, res) {
     } else {
         patchQueen(req, req.params.queen_id, req.body.name, req.body.species, req.body.age)
             .then(queen => {
-                res.set('Content-Type', 'application/json');
-                res.status(200).json(queen);
+                const accepts = req.accepts(['application/json']);
+                if (!accepts) {
+                    res.status(406).json({ Error: 'Unsupported MIME type requested - only application/json supported' });
+                } else if (accepts === 'application/json') {  
+                    res.location(queen.self);
+                    res.set('Content-Type', 'application/json');
+                    res.status(200).json(queen);
+                }
             })
             .catch(error => {
                 if (error.message === 'invalid characters') {
@@ -385,7 +411,7 @@ router.patch('/:queen_id', function (req, res) {
 /**
  * Warn that PUT requests to /queens are not supported.
  */
- router.put('/', function (req, res) {
+router.put('/', function (req, res) {
     res.set('Accept', 'Get, Post');
     res.status(405).json({ Error: "Acceptable reqests to /queens: GET, POST" });
 });

@@ -21,9 +21,15 @@ router.use(bodyParser.json());
  * 'Authenticate with a backend server' guide at
  * https://developers.google.com/identity/sign-in/web/backend-auth
  */
- function verifyJwt (token) {
+function verifyJwt (req) {
+    var idToken = '';
+    if (req.headers.authorization !== undefined) {
+        // remove the bearer suffix
+        idToken = req.headers.authorization.substr(7);
+    }
+
     verificationParams = {
-        'idToken': token,
+        'idToken': idToken,
         'audience': CLIENT_ID
     };
 
@@ -35,7 +41,7 @@ router.use(bodyParser.json());
             return payload['sub'];
         })
         .catch(error => {
-            throw error;
+            throw new Error('Missing or invalid JWT');
         });
 };
 
@@ -51,7 +57,7 @@ function verifyBeekeeper (beekeeperId, hiveId) {
     return datastore.get(hiveKey)
         .then(hive => {
             if (hive[0] === undefined || hive[0] === null) {
-                throw new Error('No hive with this hive_id exists');
+                throw new Error('Hive and/or queen not found');
             } else if (hive[0].beekeeper !== beekeeperId) {
                 throw new Error('Hive has a different owner');
             } else {
@@ -98,10 +104,6 @@ function verifyAttribute (attribute) {
  * All string attributes must be alphanumeric.
  */
 function createHive (req, hiveName, structureType, colonySize) {
-    if (req.headers.authorization === undefined) {
-        throw new Error('Missing or invalid JWT');
-    }
-    
     var newHiveKey = datastore.key(HIVES);
     const newHive = { 'hiveName': hiveName,
                         'structureType': structureType,
@@ -109,11 +111,9 @@ function createHive (req, hiveName, structureType, colonySize) {
                         'queen': null
                     };
     const hive = { 'key': newHiveKey, 'data': newHive };
-    // remove the bearer suffix
-    const idToken = req.headers.authorization.substr(7);
     
     // Verify the user
-    return verifyJwt(idToken)
+    return verifyJwt(req)
         .then(beekeeperId => {
             newHive.beekeeper = beekeeperId;
             // Verify hiveName and structureType before saving to datastore
@@ -135,23 +135,15 @@ function createHive (req, hiveName, structureType, colonySize) {
 };
 
 /**
- * Retrieve all hives. The results will be paginated to a size of 5, and a link to the
- * next 5 results. 
+ * Retrieve all hives for the authenticated user. The results will be paginated to 
+ * a size of 5, and include a link to the next 5 results. 
  */
 function getHives (req) {
-    if (req.headers.authorization === undefined) {
-        throw new Error('Missing or invalid JWT');
-    }
-
     var foundHives = {};
     var foundHivesInfo = {};
-
-    // remove the bearer suffix
-    const idToken = req.headers.authorization.substr(7);
     var beekeeper = '';
 
-    // Verify the user
-    return verifyJwt(idToken)
+    return verifyJwt(req)
         .then(beekeeperId => {
             beekeeper = beekeeperId;
             const allHivesQuery = datastore.createQuery(HIVES)
@@ -159,7 +151,7 @@ function getHives (req) {
             return datastore.runQuery(allHivesQuery);
         })
         .then(hives => {
-            foundHives.total = hives[0].length();
+            foundHives.total = hives[0].length;
             const paginHivesQuery = datastore.createQuery(HIVES).limit(5)
                 .filter('beekeeper', '=', beekeeper);
             return datastore.runQuery(paginHivesQuery)
@@ -186,14 +178,7 @@ function getHives (req) {
  * Response includes the self link.
  */
 function getHive (req, hiveId) {
-    if (req.headers.authorization === undefined) {
-        throw new Error('Missing or invalid JWT');
-    }
-
-    // remove the bearer suffix
-    const idToken = req.headers.authorization.substr(7);
-
-    return verifyJwt(idToken)
+    return verifyJwt(req)
         .then(beekeeperId => {
             return verifyBeekeeper(beekeeperId, hiveId);
         })
@@ -211,18 +196,24 @@ function getHive (req, hiveId) {
  * If not found, throw an error.
  */
 function deleteHive (req, hiveId) {
-    if (req.headers.authorization === undefined) {
-        throw new Error('Missing or invalid JWT');
-    }
+    const hiveKey = datastore.key([HIVES, parseInt(hiveId, 10)]);
 
-    const idToken = req.headers.authorization.substr(7);
-
-    return verifyJwt(idToken)
+    return verifyJwt(req)
         .then(beekeeperId => {
             return verifyBeekeeper(beekeeperId, hiveId);
         })
         .then(hive => {
-            return datastore.delete(hiveKey);
+            if (hive[0] == null) {
+                throw new Error('Hive and/or queen not found');
+            } else {
+                
+                // remove association with a queen before deleting
+                if (hive[0].queen != null) {
+                    removeQueen(req, hiveId, hive[0].queen.id);
+                }
+                // delete the hive
+                return datastore.delete(hiveKey);
+            }
         })
         .catch(error => {
             throw error;
@@ -236,20 +227,13 @@ function deleteHive (req, hiveId) {
  * through the route 'PUT /hives/:hive_id/queens/:queen_id'
  */
 function putHive (req, hiveId, hiveName, structureType, colonySize) {
-    if (req.headers.authorization === undefined) {
-        throw new Error('Missing or invalid JWT');
-    }
-
     const hiveKey = datastore.key([HIVES, parseInt(hiveId, 10)]);
     const newHive = { 'hiveName': hiveName,
                         'structureType': structureType,
                         'colonySize': colonySize
                     };
 
-    // remove the bearer suffix
-    const idToken = req.headers.authorization.substr(7);
-
-    return verifyJwt(idToken)
+    return verifyJwt(req)
         .then(beekeeperId => {
             newHive.beekeeper = beekeeperId;
             return verifyBeekeeper(beekeeperId, hiveId);
@@ -280,16 +264,11 @@ function putHive (req, hiveId, hiveName, structureType, colonySize) {
  * The Queen attribute will not be updated. Assigning a queen can be done 
  * through the route 'PUT /hives/:hive_id/queens/:queen_id'
  */
-function patchHive (req, hiveId, hiveName, structureType, colonySize) {
-    if (req.headers.authorization === undefined) {
-        throw new Error('Missing or invalid JWT');
-    }
-    
+function patchHive (req, hiveId, hiveName, structureType, colonySize) {  
     const hiveKey = datastore.key([HIVES, parseInt(hiveId, 10)]);
     var foundHive = {};
-    const idToken = req.headers.authorization.substr(7);
 
-    return verifyJwt(idToken)
+    return verifyJwt(req)
         .then(beekeeperId => {
             return verifyBeekeeper(beekeeperId, hiveId);
         })
@@ -341,15 +320,10 @@ function patchHive (req, hiveId, hiveName, structureType, colonySize) {
  * found, or the queen already has a hive.
  */
 function assignQueen (req, hiveId, queenId) {
-    if (req.headers.authorization === undefined) {
-        throw new Error('Missing or invalid JWT');
-    }
-
     const queenKey = datastore.key([QUEENS, parseInt(queenId, 10)]);
-
     var foundHive = {};
 
-    return verifyJwt(idToken)
+    return verifyJwt(req)
         .then(beekeeperId => {
             return verifyBeekeeper(beekeeperId, hiveId);
         })
@@ -365,16 +339,16 @@ function assignQueen (req, hiveId, queenId) {
                 throw new Error('Queen is already assigned');
             } else {
                 // update the found queen to show the found hive as its carrier
-                const hiveSelf = req.protocol + '://' + req.get('host') + '/hives/' + hiveKey.id;
-                const hive = { 'id': hiveKey.id, 'hiveName': foundHive[0].name, 'self': hiveSelf };
+                const hiveSelf = req.protocol + '://' + req.get('host') + '/hives/' + hiveId;
+                const hive = { 'id': hiveId, 'hiveName': foundHive[0].hiveName, 'self': hiveSelf };
                 queen[0].hive = hive;
                 return datastore.save(queen[0]);
             };
         })
         .then(() => {
-        // update the found hive to include the queen in its array of loads
-            const queenSelf = req.protocol + '://' + req.get('host') + '/loads/' + queenKey.id;
-            foundHive[0].loads.push({ 'id': queenKey.id, 'self': queenSelf });
+        // Update the found hive to now have the queen assigned to it
+            const queenSelf = req.protocol + '://' + req.get('host') + '/queens/' + queenKey.id;
+            foundHive[0].queen = { 'id': String(queenKey.id), 'self': queenSelf };
             return datastore.save(foundHive[0]);
         })
         .catch(error => {
@@ -388,27 +362,19 @@ function assignQueen (req, hiveId, queenId) {
  * found, or the queen is not associated with this hive.
  */
 function removeQueen (req, hiveId, queenId) {
-    const hiveKey = datastore.key([HIVES, parseInt(hiveId, 10)]);
     const queenKey = datastore.key([QUEENS, parseInt(queenId, 10)]);
-
     var foundHive = {};
     
-    return verifyJwt(idToken)
+    return verifyJwt(req)
         .then(beekeeperId => {
             return verifyBeekeeper(beekeeperId, hiveId);
         })
         .then(hive => {
             foundHive = hive;
-
-            const queens = foundHive[0].queens;
-            const queenIndex = queens.findIndex(queen => queen.id === queenId);
-            
-            if (queenIndex === -1) {
+            if (foundHive[0].queen == null || String(foundHive[0].queen.id) !== queenId) {
                 throw new Error('Queen is not associated with this hive');
             } else {
-                // remove queen from copy of hive object, to be used later 
-                queens.splice(queenIndex, 1);
-                foundHive[0].queens = queens;
+                foundHive[0].queen = null;
                 return datastore.get(queenKey);
             };
         })
@@ -469,8 +435,6 @@ router.post('/', function (req, res) {
                     res.status(400).json({ Error: 'hiveName and structureType must include only alphanumeric characters' });
                 } else if (error.message === 'Missing or invalid JWT') {
                     res.status(401).json({ Error: error.message });
-                } else {
-                    res.status(404).json({ Error: error.message });
                 }
             });
     };
@@ -478,13 +442,24 @@ router.post('/', function (req, res) {
 
 /**
  * Handle GET requests to /hives to get all hives. 5 hives will be listed per page, along
- * with a link to the next 5 hives, if any.
+ * with a link to the next 5 hives, if any. Only those hives associated with the user will
+ * be returned.
  */
 router.get('/', function (req, res) {
     getHives(req)
-        .then(hives => {
-            res.status(200).json(hives);
-        });
+        .then(hives => {            
+            if (!accepts) {
+                res.status(406).json({ Error: 'Unsupported MIME type requested - only application/json supported' });
+            } else if (accepts === 'application/json') {
+                res.set('Content-Type', 'application/json');
+                res.status(200).json(hives);
+            }
+        })
+        .catch(error => {
+            if (error.message === 'Missing or invalid JWT') {
+                res.status(401).json({ Error: error.message });
+            }
+        })
 });
 
 /**
@@ -510,7 +485,7 @@ router.get('/:hive_id', function (req, res) {
         .catch(error => {
             if (error.message === 'Missing or invalid JWT') {
                 res.status(401).json({ Error: error.message });
-            } else if (error.message === 'No hive with this hive_id exists') {
+            } else if (error.message === 'Hive and/or queen not found') {
                 res.status(404).json({ Error: error.message });
             }
         });
@@ -527,7 +502,7 @@ router.delete('/:hive_id', function (req, res) {
             res.status(204).end();
         })
         .catch(error => {
-            if (error.message === 'No hive with this hive_id exists') {
+            if (error.message === 'Hive and/or queen not found') {
                 res.status(404).json({ Error: error.message });
             } else if (error.message === 'Hive has a different owner') {
                 res.status(403).json({ Error: error.message });
@@ -550,17 +525,22 @@ router.put('/:hive_id', function (req, res) {
     
     } else {
         putHive(req, req.params.hive_id, req.body.hiveName, req.body.structureType, req.body.colonySize)
-            .then(hive => {            
-                res.location(hive.self);
-                res.set('Content-Type', 'application/json');
-                res.status(303).json(hive);
+            .then(hive => {     
+                const accepts = req.accepts(['application/json']);
+                if (!accepts) {
+                    res.status(406).json({ Error: 'Unsupported MIME type requested - only application/json supported' });
+                } else if (accepts === 'application/json') {  
+                    res.location(hive.self);
+                    res.set('Content-Type', 'application/json');
+                    res.status(303).json(hive);
+                }
             })
             .catch(error => {
                 if (error.message === 'invalid characters') {
                     res.status(400).json({ Error: 'hiveName and structureType must include only alphanumeric characters' });
                 } else if (error.message === 'Missing or invalid JWT') {
                     res.status(401).json({ Error: error.message });
-                } else if (error.message === 'No hive with this hive_id exists') {
+                } else if (error.message === 'Hive and/or queen not found') {
                     res.status(404).json({ Error: error.message });
                 }
             });
@@ -577,15 +557,21 @@ router.patch('/:hive_id', function (req, res) {
     } else {
         patchHive(req, req.params.hive_id, req.body.hiveName, req.body.structureType, req.body.colonySize)
             .then(hive => {
-                res.set('Content-Type', 'application/json');
-                res.status(200).json(hive);
+                const accepts = req.accepts(['application/json']);
+                if (!accepts) {
+                    res.status(406).json({ Error: 'Unsupported MIME type requested - only application/json supported' });
+                } else if (accepts === 'application/json') {  
+                    res.location(hive.self);
+                    res.set('Content-Type', 'application/json');
+                    res.status(200).json(hive);
+                }
             })
             .catch(error => {
                 if (error.message === 'invalid characters') {
                     res.status(400).json({ Error: 'hiveName and structureType must include only alphanumeric characters' });
                 } else if (error.message === 'Missing or invalid JWT') {
                     res.status(401).json({ Error: error.message });
-                } else if (error.message === 'No hive with this hive_id exists') {
+                } else if (error.message === 'Hive and/or queen not found') {
                     res.status(404).json({ Error: error.message });
                 } 
             });
