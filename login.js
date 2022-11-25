@@ -24,7 +24,7 @@ function sendHTML(res, statusCode, idToken, resObj) {
     // documentation.
     // https://json2html.com/docs/
     var template = [
-        {'<>':'p','text':'Below is your profile information'},
+        {'<>':'p','text':'Below is your user profile information with the beekeeper API'},
         {'<>':'ul','html':[
             {'<>':'li','html':function(){return('Your given name is ' + this.givenName)}},
             {'<>':'li','html':function(){return('Your family name is ' + this.familyName)}},

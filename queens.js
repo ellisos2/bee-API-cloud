@@ -132,6 +132,30 @@ function getQueen (req, queenId) {
 };
 
 /**
+ * Remove the queen with queen_id from the hive with hive_id.
+ * Error is returned if the user is not authenticated, the hive is not
+ * found, or the queen is not associated with this hive.
+ */
+function removeQueen (req, hiveId, queenId) {
+    const hiveKey = datastore.key([HIVES, parseInt(hiveId, 10)]);
+    var foundHive = {};
+ 
+    return datastore.get(hiveKey)
+        .then(hive => {
+            foundHive = hive;
+            if (foundHive[0].queen == null || String(foundHive[0].queen.id) !== queenId) {
+                throw new Error('Queen is not associated with this hive');
+            } else {
+                foundHive[0].queen = null;
+                return datastore.save(foundHive[0]);
+            };
+        })
+        .catch(error => {
+            throw error;
+        })
+};
+
+/**
  * Delete the Queen with the given ID.
  * If not found, throw an error.
  */
@@ -142,10 +166,16 @@ function deleteQueen (req, queenId) {
         .then(queen => {
             if (queen[0] == null) {
                 throw new Error('Queen not found');
+            } else if (queen[0].hive != null) {
+                // remove the queen as the hive's queen before deleting
+                const hiveId = queen[0].hive.id;
+                return removeQueen(req, hiveId, queenId);
             } else {
-                // delete the queen
-                return datastore.delete(queenKey);
+                return;
             }
+        })
+        .then(() => {
+            return datastore.delete(queenKey);
         })
         .catch(error => {
             throw new Error(error.message);
@@ -289,7 +319,7 @@ router.post('/', function (req, res) {
 router.get('/', function (req, res) {
     getQueens(req)
         .then(queens => {
-            const accepts = req.accepts(['application/json', 'text/html']);
+            const accepts = req.accepts(['application/json']);
             
             // determine the appropriate MIME type to send based on the request
             if (!accepts) {
@@ -310,7 +340,7 @@ router.get('/:queen_id', function (req, res) {
         .then(queen => {
             // req.accepts() returns content type if found, and False if none found
             // Source: https://www.tutorialspoint.com/express-js-req-accepts-method
-            const accepts = req.accepts(['application/json', 'text/html']);
+            const accepts = req.accepts(['application/json']);
             
             // determine the appropriate MIME type to send based on the request
             if (!accepts) {
