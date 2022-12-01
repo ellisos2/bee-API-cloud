@@ -28,7 +28,8 @@ function sendHTML(res, statusCode, idToken, resObj) {
         {'<>':'ul','html':[
             {'<>':'li','html':function(){return('Your given name is ' + this.givenName)}},
             {'<>':'li','html':function(){return('Your family name is ' + this.familyName)}},
-            {'<>':'li','html':function(){return('Your new JWT: ' + idToken)}}
+            {'<>':'li','html':function(){return('Your user ID is: ' + resObj.metadata.source.id)}},
+            {'<>':'li','html':function(){return('Your new JWT is: ' + idToken)}}
         ]}
     ];
 

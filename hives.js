@@ -154,7 +154,7 @@ function getHives (req) {
             foundHives.total = hives[0].length;
             const paginHivesQuery = datastore.createQuery(HIVES).limit(5)
                 .filter('beekeeper', '=', beekeeper);
-            return datastore.runQuery(paginHivesQuery)
+            return datastore.runQuery(paginHivesQuery);
         })
         .then(hives => {
             foundHives.hives = hives[0]; // hive entities as a list
@@ -188,6 +188,9 @@ function getHive (req, hiveId) {
             const self = req.protocol + '://' + req.get('host') + req.baseUrl + '/' + hiveObj.id;
             hiveObj.self = self;
             return hiveObj;
+        })
+        .catch(error => {
+            throw error;
         });
 };
 
@@ -447,7 +450,8 @@ router.post('/', function (req, res) {
  */
 router.get('/', function (req, res) {
     getHives(req)
-        .then(hives => {            
+        .then(hives => {    
+            const accepts = req.accepts(['application/json']);        
             if (!accepts) {
                 res.status(406).json({ Error: 'Unsupported MIME type requested - only application/json supported' });
             } else if (accepts === 'application/json') {
@@ -472,7 +476,6 @@ router.get('/:hive_id', function (req, res) {
             // req.accepts() returns content type if found, and False if none found
             // Source: https://www.tutorialspoint.com/express-js-req-accepts-method
             const accepts = req.accepts(['application/json']);
-            
             if (!accepts) {
                 res.status(406).json({ Error: 'Unsupported MIME type requested - only application/json supported' });
             } else if (accepts === 'application/json') {
@@ -485,6 +488,8 @@ router.get('/:hive_id', function (req, res) {
         .catch(error => {
             if (error.message === 'Missing or invalid JWT') {
                 res.status(401).json({ Error: error.message });
+            } else if (error.message === 'Hive has a different owner') {
+                res.status(403).json({ Error: error.message });
             } else if (error.message === 'Hive and/or queen not found') {
                 res.status(404).json({ Error: error.message });
             }
@@ -522,7 +527,7 @@ router.put('/:hive_id', function (req, res) {
     
     } else if (req.body.hiveName === undefined || req.body.structureType === undefined || req.body.colonySize === undefined) {
         res.status(400).json({ Error: 'The request object is missing at least one of the required attributes' });
-    
+
     } else {
         putHive(req, req.params.hive_id, req.body.hiveName, req.body.structureType, req.body.colonySize)
             .then(hive => {     
@@ -573,7 +578,7 @@ router.patch('/:hive_id', function (req, res) {
                     res.status(401).json({ Error: error.message });
                 } else if (error.message === 'Hive and/or queen not found') {
                     res.status(404).json({ Error: error.message });
-                } 
+                }
             });
     };
 });

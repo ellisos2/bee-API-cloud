@@ -2,7 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 
 const ds = require('./datastore');
-const { OAUTH2CLIENT, CLIENT_ID, USERS, QUEENS } = require('./constants');
+const { OAUTH2CLIENT, CLIENT_ID, USERS, HIVES, QUEENS } = require('./constants');
 
 const router = express.Router();
 
@@ -135,6 +135,7 @@ function getQueen (req, queenId) {
  * Remove the queen with queen_id from the hive with hive_id.
  * Error is returned if the user is not authenticated, the hive is not
  * found, or the queen is not associated with this hive.
+ * Helper function for use with deleteQueen.
  */
 function removeQueen (req, hiveId, queenId) {
     const hiveKey = datastore.key([HIVES, parseInt(hiveId, 10)]);
