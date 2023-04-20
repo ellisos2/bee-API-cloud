@@ -1,9 +1,11 @@
 const { google } = require('googleapis');
+const dotenv = require('dotenv');
+dotenv.config();
 
-const DOMAIN = 'https://portfolio-ellisos2.uk.r.appspot.com';
-const CLIENT_ID = '829321060518-07dcgkh1to4341mrv1ooqmo682mf6t7h.apps.googleusercontent.com';
-const CLIENT_SECRET = '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';
-const REDIRECT_URL = 'https://portfolio-ellisos2.uk.r.appspot.com/oauth';
+const DOMAIN = 'https://portfolio-ellisos2-370318.uk.r.appspot.com';
+const CLIENT_ID = process.env.CLIENT_ID;
+const CLIENT_SECRET = process.env.CLIENT_SECRET;
+const REDIRECT_URL = 'https://portfolio-ellisos2-370318.uk.r.appspot.com/oauth';
 const OAUTH2CLIENT = new google.auth.OAuth2(
     CLIENT_ID,
     CLIENT_SECRET,

@@ -1,0 +1,3825 @@
+{
+	"info": {
+		"_postman_id": "302421ce-a07b-40e3-8356-4252b4f36e27",
+		"name": "portfolio-ellisos2",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "23726435"
+	},
+	"item": [
+		{
+			"name": "create hive_1",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const hive_id = pm.response.json()[\"id\"];\r",
+							"\r",
+							"// assign the hive_id of the newly created hive to an environment variable\r",
+							"pm.environment.set(\"hive_id_1\", hive_id)\r",
+							"\r",
+							"pm.test(\"response has status 201\", function () {\r",
+							"    pm.response.to.have.status(201);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"all hive fields are correct\", function () {\r",
+							"    pm.expect(pm.response.json()[\"hiveName\"]).to.equal(\"HV463\");\r",
+							"    pm.expect(pm.response.json()[\"structureType\"]).to.equal(\"Clay Hive\");\r",
+							"    pm.expect(pm.response.json()[\"colonySize\"]).to.equal(24000);\r",
+							"    \r",
+							"    const app_url = pm.environment.get(\"app_url\");\r",
+							"    pm.expect(pm.response.json()[\"self\"]).to.equal(app_url + \"/hives/\" + hive_id);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"hiveName\": \"HV463\",\r\n    \"structureType\": \"Clay Hive\",\r\n    \"colonySize\": 24000\r\n}"
+				},
+				"url": {
+					"raw": "{{app_url}}/hives",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"hives"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get hive_1",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"response has status 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"all hive fields are correct\", function () {\r",
+							"    pm.expect(pm.response.json()[\"hiveName\"]).to.equal(\"HV463\");\r",
+							"    pm.expect(pm.response.json()[\"structureType\"]).to.equal(\"Clay Hive\");\r",
+							"    pm.expect(pm.response.json()[\"colonySize\"]).to.equal(24000);\r",
+							"    \r",
+							"    const hive_id = pm.environment.get(\"hive_id_1\");\r",
+							"    const app_url = pm.environment.get(\"app_url\");\r",
+							"    pm.expect(pm.response.json()[\"self\"]).to.equal(app_url + \"/hives/\" + hive_id);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/hives/{{hive_id_1}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"hives",
+						"{{hive_id_1}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get hive_1 invalid MIME",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"response has status 406\", function () {\r",
+							"    pm.response.to.have.status(406);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"validate error message\", function () {\r",
+							"    pm.expect(pm.response.json()[\"Error\"]).to.equal('Unsupported MIME type requested - only application/json supported');\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "text/css",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{app_url}}/hives/{{hive_id_1}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"hives",
+						"{{hive_id_1}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get hive_1 invalid hive_id",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"response has status 404\", function () {\r",
+							"    pm.response.to.have.status(404);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"validate error message\", function () {\r",
+							"    pm.expect(pm.response.json()[\"Error\"]).to.equal('Hive and/or queen not found');\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/hives/{{invalid_hive_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"hives",
+						"{{invalid_hive_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "create queen_1",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const queen_id = pm.response.json()[\"id\"];\r",
+							"\r",
+							"// assign the queen_id of the newly created queen to an environment variable\r",
+							"pm.environment.set(\"queen_id_1\", queen_id)\r",
+							"\r",
+							"pm.test(\"response has status 201\", function () {\r",
+							"    pm.response.to.have.status(201);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"all queen fields are correct\", function () {\r",
+							"    pm.expect(pm.response.json()[\"name\"]).to.equal(\"Eugenie\");\r",
+							"    pm.expect(pm.response.json()[\"species\"]).to.equal(\"Western Honey Bee\");\r",
+							"    pm.expect(pm.response.json()[\"age\"]).to.equal(4);\r",
+							"    \r",
+							"    const app_url = pm.environment.get(\"app_url\");\r",
+							"    pm.expect(pm.response.json()[\"self\"]).to.equal(app_url + \"/queens/\" + queen_id);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\": \"Eugenie\",\r\n    \"species\": \"Western Honey Bee\",\r\n    \"age\": 4\r\n}"
+				},
+				"url": {
+					"raw": "{{app_url}}/queens",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"queens"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get queen_1",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"response has status 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"all queen fields are correct\", function () {\r",
+							"    pm.expect(pm.response.json()[\"name\"]).to.equal(\"Eugenie\");\r",
+							"    pm.expect(pm.response.json()[\"species\"]).to.equal(\"Western Honey Bee\");\r",
+							"    pm.expect(pm.response.json()[\"age\"]).to.equal(4);\r",
+							"    \r",
+							"    const queen_id = pm.environment.get(\"queen_id_1\");\r",
+							"    const app_url = pm.environment.get(\"app_url\");\r",
+							"    pm.expect(pm.response.json()[\"self\"]).to.equal(app_url + \"/queens/\" + queen_id);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/queens/{{queen_id_1}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"queens",
+						"{{queen_id_1}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get queen_1 invalid MIME",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"response has status 406\", function () {\r",
+							"    pm.response.to.have.status(406);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"validate error message\", function () {\r",
+							"    pm.expect(pm.response.json()[\"Error\"]).to.equal('Unsupported MIME type requested - only application/json supported');\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "text/css",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{app_url}}/queens/{{queen_id_1}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"queens",
+						"{{queen_id_1}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get queen_1 invalid queen_id",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"response has status 404\", function () {\r",
+							"    pm.response.to.have.status(404);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"validate error message\", function () {\r",
+							"    pm.expect(pm.response.json()[\"Error\"]).to.equal('No queen with this queen_id exists');\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/queens/{{invalid_queen_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"queens",
+						"{{invalid_queen_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "update hive_1 hiveName",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"response has status 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PATCH",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"hiveName\": \"HV1009\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/hives/{{hive_id_1}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"hives",
+						"{{hive_id_1}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "update hive_1 structureType",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"response has status 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PATCH",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"structureType\": \"AZ Hive\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/hives/{{hive_id_1}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"hives",
+						"{{hive_id_1}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "update hive_1 colonySize",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"response has status 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PATCH",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"colonySize\": 48000\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/hives/{{hive_id_1}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"hives",
+						"{{hive_id_1}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "verify updated hive fields after PATCH",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"response has status 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"all boat fields are correct\", function () {\r",
+							"    pm.expect(pm.response.json()[\"hiveName\"]).to.equal(\"HV1009\");\r",
+							"    pm.expect(pm.response.json()[\"structureType\"]).to.equal(\"AZ Hive\");\r",
+							"    pm.expect(pm.response.json()[\"colonySize\"]).to.equal(48000);\r",
+							"    \r",
+							"    const hive_id = pm.environment.get(\"hive_id_1\");\r",
+							"    const app_url = pm.environment.get(\"app_url\");\r",
+							"    pm.expect(pm.response.json()[\"self\"]).to.equal(app_url + \"/hives/\" + hive_id);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/hives/{{hive_id_1}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"hives",
+						"{{hive_id_1}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "update structureType and colonySize",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"response has status 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PATCH",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"structureType\": \"Mud Hive\",\r\n    \"colonySize\": 20000\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/hives/{{hive_id_1}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"hives",
+						"{{hive_id_1}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "verify updated hive fields again",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"response has status 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"all hive fields are correct\", function () {\r",
+							"    pm.expect(pm.response.json()[\"hiveName\"]).to.equal(\"HV1009\");\r",
+							"    pm.expect(pm.response.json()[\"structureType\"]).to.equal(\"Mud Hive\");\r",
+							"    pm.expect(pm.response.json()[\"colonySize\"]).to.equal(20000);\r",
+							"    \r",
+							"    const hive_id = pm.environment.get(\"hive_id_1\");\r",
+							"    const app_url = pm.environment.get(\"app_url\");\r",
+							"    pm.expect(pm.response.json()[\"self\"]).to.equal(app_url + \"/hives/\" + hive_id);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/hives/{{hive_id_1}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"hives",
+						"{{hive_id_1}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "update queen_1 name",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"response has status 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "PATCH",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\": \"Fiona\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/queens/{{queen_id_1}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"queens",
+						"{{queen_id_1}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "update queen_1 species",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"response has status 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "PATCH",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"species\": \"Eastern Honey Bee\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/queens/{{queen_id_1}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"queens",
+						"{{queen_id_1}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "update queen_1 age",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"response has status 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "PATCH",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"age\": 6\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/queens/{{queen_id_1}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"queens",
+						"{{queen_id_1}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "verify updated queen fields after PATCH",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"response has status 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"all queen fields are correct\", function () {\r",
+							"    pm.expect(pm.response.json()[\"name\"]).to.equal(\"Fiona\");\r",
+							"    pm.expect(pm.response.json()[\"species\"]).to.equal(\"Eastern Honey Bee\");\r",
+							"    pm.expect(pm.response.json()[\"age\"]).to.equal(6);\r",
+							"    \r",
+							"    const queen_id = pm.environment.get(\"queen_id_1\");\r",
+							"    const app_url = pm.environment.get(\"app_url\");\r",
+							"    pm.expect(pm.response.json()[\"self\"]).to.equal(app_url + \"/queens/\" + queen_id);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/queens/{{queen_id_1}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"queens",
+						"{{queen_id_1}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "update species and age",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"response has status 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "PATCH",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"species\": \"Philippine Honey Bee\",\r\n    \"age\": 9\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/queens/{{queen_id_1}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"queens",
+						"{{queen_id_1}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "verify updated queen fields again",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"response has status 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"all queen fields are correct\", function () {\r",
+							"    pm.expect(pm.response.json()[\"name\"]).to.equal(\"Fiona\");\r",
+							"    pm.expect(pm.response.json()[\"species\"]).to.equal(\"Philippine Honey Bee\");\r",
+							"    pm.expect(pm.response.json()[\"age\"]).to.equal(9);\r",
+							"    \r",
+							"    const queen_id = pm.environment.get(\"queen_id_1\");\r",
+							"    const app_url = pm.environment.get(\"app_url\");\r",
+							"    pm.expect(pm.response.json()[\"self\"]).to.equal(app_url + \"/queens/\" + queen_id);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/queens/{{queen_id_1}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"queens",
+						"{{queen_id_1}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "overwrite hive_1",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"response has status 303\", function () {\r",
+							"    pm.response.to.have.status(303);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"self links to updated hive in location\", function () {\r",
+							"    const hive_id = pm.environment.get(\"hive_id_1\");\r",
+							"    const app_url = pm.environment.get(\"app_url\");\r",
+							"    pm.expect(pm.response.json()[\"self\"]).to.equal(app_url + \"/hives/\" + hive_id);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"hiveName\": \"HV762\",\r\n    \"structureType\": \"Top bar Hive\",\r\n    \"colonySize\": 4500\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/hives/{{hive_id_1}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"hives",
+						"{{hive_id_1}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "verify updated hive_1 fields after PUT",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"response has status 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"all hive fields are correct\", function () {\r",
+							"    pm.expect(pm.response.json()[\"hiveName\"]).to.equal(\"HV762\");\r",
+							"    pm.expect(pm.response.json()[\"structureType\"]).to.equal(\"Top bar Hive\");\r",
+							"    pm.expect(pm.response.json()[\"colonySize\"]).to.equal(4500);\r",
+							"    \r",
+							"    const hive_id = pm.environment.get(\"hive_id_1\");\r",
+							"    const app_url = pm.environment.get(\"app_url\");\r",
+							"    pm.expect(pm.response.json()[\"self\"]).to.equal(app_url + \"/hives/\" + hive_id);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/hives/{{hive_id_1}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"hives",
+						"{{hive_id_1}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "overwrite queen_1",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"response has status 303\", function () {\r",
+							"    pm.response.to.have.status(303);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"self links to updated queen in location\", function () {\r",
+							"    const queen_id = pm.environment.get(\"queen_id_1\");\r",
+							"    const app_url = pm.environment.get(\"app_url\");\r",
+							"    pm.expect(pm.response.json()[\"self\"]).to.equal(app_url + \"/queens/\" + queen_id);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\": \"Elizabeth\",\r\n    \"species\": \"Killer Bee\",\r\n    \"age\": 1\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/queens/{{queen_id_1}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"queens",
+						"{{queen_id_1}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "verify updated queen_1 fields after PUT",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"response has status 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"all queen fields are correct\", function () {\r",
+							"    pm.expect(pm.response.json()[\"name\"]).to.equal(\"Elizabeth\");\r",
+							"    pm.expect(pm.response.json()[\"species\"]).to.equal(\"Killer Bee\");\r",
+							"    pm.expect(pm.response.json()[\"age\"]).to.equal(1);\r",
+							"    \r",
+							"    const queen_id = pm.environment.get(\"queen_id_1\");\r",
+							"    const app_url = pm.environment.get(\"app_url\");\r",
+							"    pm.expect(pm.response.json()[\"self\"]).to.equal(app_url + \"/queens/\" + queen_id);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/queens/{{queen_id_1}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"queens",
+						"{{queen_id_1}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "attempt PUT to /hives",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"response has status 405\", function () {\r",
+							"    pm.response.to.have.status(405);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"validate error message\", function () {\r",
+							"    pm.expect(pm.response.json()[\"Error\"]).to.equal(\"Acceptable reqests to /hives: GET, POST\");\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"hiveName\": \"HV212\",\r\n    \"structureType\": \"Horizontal Hive\",\r\n    \"colonySize\": 5400\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/hives",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"hives"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "attempt DELETE to /hives",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"response has status 405\", function () {\r",
+							"    pm.response.to.have.status(405);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"validate error message\", function () {\r",
+							"    pm.expect(pm.response.json()[\"Error\"]).to.equal(\"Acceptable reqests to /hives: GET, POST\");\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{app_url}}/hives",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"hives"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "attempt PUT to /queens",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"response has status 405\", function () {\r",
+							"    pm.response.to.have.status(405);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"validate error message\", function () {\r",
+							"    pm.expect(pm.response.json()[\"Error\"]).to.equal(\"Acceptable reqests to /queens: GET, POST\");\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"hiveName\": \"HV212\",\r\n    \"structureType\": \"Horizontal Hive\",\r\n    \"colonySize\": 5400\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/queens",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"queens"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "attempt DELETE to /queens",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"response has status 405\", function () {\r",
+							"    pm.response.to.have.status(405);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"validate error message\", function () {\r",
+							"    pm.expect(pm.response.json()[\"Error\"]).to.equal(\"Acceptable reqests to /queens: GET, POST\");\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{app_url}}/queens",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"queens"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "create hive with invalid characters in hiveName",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"response has status 400\", function () {\r",
+							"    pm.response.to.have.status(400);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"validate error message for invalid characters in hiveName\", function () {\r",
+							"    pm.expect(pm.response.json()[\"Error\"]).to.equal(\"hiveName and structureType must include only alphanumeric characters\");\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"hiveName\": \"HV212#\",\r\n    \"structureType\": \"Horizontal Hive\",\r\n    \"colonySize\": 5400\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/hives",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"hives"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "create hive with invalid characters in structureType",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"response has status 400\", function () {\r",
+							"    pm.response.to.have.status(400);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"validate error message for invalid characters in structureType\", function () {\r",
+							"    pm.expect(pm.response.json()[\"Error\"]).to.equal(\"hiveName and structureType must include only alphanumeric characters\");\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"hiveName\": \"HV212\",\r\n    \"structureType\": \"Horizontal Hive$\",\r\n    \"colonySize\": 5400\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/hives",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"hives"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "create hive with invalid MIME request",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"response has status 415\", function () {\r",
+							"    pm.response.to.have.status(415);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"validate error message for a request with an unsupported MIME type (text)\", function () {\r",
+							"    pm.expect(pm.response.json()[\"Error\"]).to.equal(\"Unsupported MIME type received - server can only accept application/json\");\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"hiveName\": \"HV212\",\r\n    \"structureType\": \"Horizontal Hive\",\r\n    \"colonySize\": 5400\r\n}",
+					"options": {
+						"raw": {
+							"language": "text"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/hives",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"hives"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "create hive with missing attribute",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"response has status 400\", function () {\r",
+							"    pm.response.to.have.status(400);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"validate error message for POST with missing attribute\", function () {\r",
+							"    pm.expect(pm.response.json()[\"Error\"]).to.equal('The request object is missing at least one of the required attributes');\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"hiveName\": \"HV212#\",\r\n    \"structureType\": \"Horizontal Hive\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/hives",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"hives"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "create hive_2",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const hive_id = pm.response.json()[\"id\"];\r",
+							"\r",
+							"// assign the hive_id of the newly created hive to an environment variable\r",
+							"pm.environment.set(\"hive_id_2\", hive_id)\r",
+							"\r",
+							"pm.test(\"response has status 201\", function () {\r",
+							"    pm.response.to.have.status(201);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"all hive fields are correct\", function () {\r",
+							"    pm.expect(pm.response.json()[\"hiveName\"]).to.equal(\"HV212\");\r",
+							"    pm.expect(pm.response.json()[\"structureType\"]).to.equal(\"Horizontal Hive\");\r",
+							"    pm.expect(pm.response.json()[\"colonySize\"]).to.equal(5400);\r",
+							"    \r",
+							"    const app_url = pm.environment.get(\"app_url\");\r",
+							"    pm.expect(pm.response.json()[\"self\"]).to.equal(app_url + \"/hives/\" + hive_id);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"hiveName\": \"HV212\",\r\n    \"structureType\": \"Horizontal Hive\",\r\n    \"colonySize\": 5400\r\n}"
+				},
+				"url": {
+					"raw": "{{app_url}}/hives",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"hives"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "create queen with invalid characters in name",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"response has status 400\", function () {\r",
+							"    pm.response.to.have.status(400);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"validate error message for invalid characters in name\", function () {\r",
+							"    pm.expect(pm.response.json()[\"Error\"]).to.equal(\"Name and species must include only alphanumeric characters\");\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\": \"Christine%\",\r\n    \"species\": \"Western Honey Bee\",\r\n    \"age\": 13\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/queens",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"queens"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "create queen with invalid characters in species",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"response has status 400\", function () {\r",
+							"    pm.response.to.have.status(400);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"validate error message for invalid characters in species\", function () {\r",
+							"    pm.expect(pm.response.json()[\"Error\"]).to.equal(\"Name and species must include only alphanumeric characters\");\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\": \"Christine\",\r\n    \"species\": \"Western Honey Bee^\",\r\n    \"age\": 13\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/queens",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"queens"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "create queen with invalid MIME request",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"response has status 415\", function () {\r",
+							"    pm.response.to.have.status(415);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"validate error message for a request with an unsupported MIME type (text)\", function () {\r",
+							"    pm.expect(pm.response.json()[\"Error\"]).to.equal(\"Unsupported MIME type received - server can only accept application/json\");\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\": \"Christine\",\r\n    \"species\": \"Western Honey Bee\",\r\n    \"age\": 13\r\n}",
+					"options": {
+						"raw": {
+							"language": "text"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/queens",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"queens"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "create queen with missing attribute",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"response has status 400\", function () {\r",
+							"    pm.response.to.have.status(400);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"validate error message for POST with missing attribute\", function () {\r",
+							"    pm.expect(pm.response.json()[\"Error\"]).to.equal('The request object is missing at least one of the required attributes');\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\": \"Christine%\",\r\n    \"species\": \"Western Honey Bee\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/queens",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"queens"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "create queen_2",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const queen_id = pm.response.json()[\"id\"];\r",
+							"\r",
+							"// assign the queen_id of the newly created queen to an environment variable\r",
+							"pm.environment.set(\"queen_id_2\", queen_id)\r",
+							"\r",
+							"pm.test(\"response has status 201\", function () {\r",
+							"    pm.response.to.have.status(201);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"all queen fields are correct\", function () {\r",
+							"    pm.expect(pm.response.json()[\"name\"]).to.equal(\"Christine\");\r",
+							"    pm.expect(pm.response.json()[\"species\"]).to.equal(\"Western Honey Bee\");\r",
+							"    pm.expect(pm.response.json()[\"age\"]).to.equal(13);\r",
+							"    \r",
+							"    const app_url = pm.environment.get(\"app_url\");\r",
+							"    pm.expect(pm.response.json()[\"self\"]).to.equal(app_url + \"/queens/\" + queen_id);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\": \"Christine\",\r\n    \"species\": \"Western Honey Bee\",\r\n    \"age\": 13\r\n}"
+				},
+				"url": {
+					"raw": "{{app_url}}/queens",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"queens"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "create queen_3",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const queen_id = pm.response.json()[\"id\"];\r",
+							"\r",
+							"// assign the queen_id of the newly created queen to an environment variable\r",
+							"pm.environment.set(\"queen_id_3\", queen_id)\r",
+							"\r",
+							"pm.test(\"response has status 201\", function () {\r",
+							"    pm.response.to.have.status(201);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"all queen fields are correct\", function () {\r",
+							"    pm.expect(pm.response.json()[\"name\"]).to.equal(\"Alice\");\r",
+							"    pm.expect(pm.response.json()[\"species\"]).to.equal(\"Western Honey Bee\");\r",
+							"    pm.expect(pm.response.json()[\"age\"]).to.equal(14);\r",
+							"    \r",
+							"    const app_url = pm.environment.get(\"app_url\");\r",
+							"    pm.expect(pm.response.json()[\"self\"]).to.equal(app_url + \"/queens/\" + queen_id);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\": \"Alice\",\r\n    \"species\": \"Western Honey Bee\",\r\n    \"age\": 14\r\n}"
+				},
+				"url": {
+					"raw": "{{app_url}}/queens",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"queens"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "create hive_3",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const hive_id = pm.response.json()[\"id\"];\r",
+							"\r",
+							"// assign the hive_id of the newly created hive to an environment variable\r",
+							"pm.environment.set(\"hive_id_3\", hive_id)\r",
+							"\r",
+							"pm.test(\"response has status 201\", function () {\r",
+							"    pm.response.to.have.status(201);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"all hive fields are correct\", function () {\r",
+							"    pm.expect(pm.response.json()[\"hiveName\"]).to.equal(\"HV333\");\r",
+							"    pm.expect(pm.response.json()[\"structureType\"]).to.equal(\"Rose Hive\");\r",
+							"    pm.expect(pm.response.json()[\"colonySize\"]).to.equal(156000);\r",
+							"    \r",
+							"    const app_url = pm.environment.get(\"app_url\");\r",
+							"    pm.expect(pm.response.json()[\"self\"]).to.equal(app_url + \"/hives/\" + hive_id);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"hiveName\": \"HV333\",\r\n    \"structureType\": \"Rose Hive\",\r\n    \"colonySize\": 156000\r\n}"
+				},
+				"url": {
+					"raw": "{{app_url}}/hives",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"hives"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "create hive_4",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const hive_id = pm.response.json()[\"id\"];\r",
+							"\r",
+							"// assign the hive_id of the newly created hive to an environment variable\r",
+							"pm.environment.set(\"hive_id_4\", hive_id)\r",
+							"\r",
+							"pm.test(\"response has status 201\", function () {\r",
+							"    pm.response.to.have.status(201);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"all hive fields are correct\", function () {\r",
+							"    pm.expect(pm.response.json()[\"hiveName\"]).to.equal(\"HV578\");\r",
+							"    pm.expect(pm.response.json()[\"structureType\"]).to.equal(\"Warre Hive\");\r",
+							"    pm.expect(pm.response.json()[\"colonySize\"]).to.equal(13600);\r",
+							"    \r",
+							"    const app_url = pm.environment.get(\"app_url\");\r",
+							"    pm.expect(pm.response.json()[\"self\"]).to.equal(app_url + \"/hives/\" + hive_id);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"hiveName\": \"HV578\",\r\n    \"structureType\": \"Warre Hive\",\r\n    \"colonySize\": 13600\r\n}"
+				},
+				"url": {
+					"raw": "{{app_url}}/hives",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"hives"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get all hives",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"response has status 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/hives",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"hives"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get all queens",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"response has status 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/queens",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"queens"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "attempt update hive with invalid attribute",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"response has status 400\", function () {\r",
+							"    pm.response.to.have.status(400);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"validate error message for invalid characters in PATCH\", function () {\r",
+							"    pm.expect(pm.response.json()[\"Error\"]).to.equal(\"hiveName and structureType must include only alphanumeric characters\");\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PATCH",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"hiveName\": \"Big Hive#$%\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/hives/{{hive_id_2}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"hives",
+						"{{hive_id_2}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "attempt replace hive with invalid attribute",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"response has status 400\", function () {\r",
+							"    pm.response.to.have.status(400);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"validate error message for invalid characters in PUT\", function () {\r",
+							"    pm.expect(pm.response.json()[\"Error\"]).to.equal(\"hiveName and structureType must include only alphanumeric characters\");\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"hiveName\": \"HV638@@\",\r\n    \"structureType\": \"Sand Hive!@@\",\r\n    \"colonySize\": 33\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/hives/{{hive_id_2}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"hives",
+						"{{hive_id_2}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "attempt update queen with invalid attribute",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"response has status 400\", function () {\r",
+							"    pm.response.to.have.status(400);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"validate error message for invalid characters in name\", function () {\r",
+							"    pm.expect(pm.response.json()[\"Error\"]).to.equal(\"Name and species must include only alphanumeric characters\");\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "PATCH",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\": \"HV#^@&\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/queens/{{queen_id_2}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"queens",
+						"{{queen_id_2}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "attempt replace queen with invalid attribute",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"response has status 400\", function () {\r",
+							"    pm.response.to.have.status(400);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"validate error message for invalid characters in name\", function () {\r",
+							"    pm.expect(pm.response.json()[\"Error\"]).to.equal(\"Name and species must include only alphanumeric characters\");\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\": \"Christine#\",\r\n    \"species\": \"Western Honey Bee!\",\r\n    \"age\": 13\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/queens/{{queen_id_2}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"queens",
+						"{{queen_id_2}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "assign queen to hive",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"204 status code\", function () {",
+							"    //Check for status code 204",
+							"    pm.response.to.have.status(204);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/hives/{{hive_id_1}}/queens/{{queen_id_1}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"hives",
+						"{{hive_id_1}}",
+						"queens",
+						"{{queen_id_1}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "assign queen with invalid hive id",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"404 status code\", function () {",
+							"   //Check for error code 404",
+							"   pm.response.to.have.status(404);",
+							"});",
+							"",
+							"pm.test(\"404 error message\", function () {",
+							"     //Check for error code 404",
+							"     pm.expect(pm.response.json()[\"Error\"]).to.equal('Hive and/or queen not found');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/hives/{{invalid_hive_id}}/queens/{{queen_id_1}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"hives",
+						"{{invalid_hive_id}}",
+						"queens",
+						"{{queen_id_1}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "assign queen with invalid queen id",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"404 status code\", function () {",
+							"   //Check for error code 404",
+							"   pm.response.to.have.status(404);",
+							"});",
+							"",
+							"pm.test(\"404 error message\", function () {",
+							"     pm.expect(pm.response.json()[\"Error\"]).to.equal('Hive and/or queen not found');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/hives/{{hive_id_1}}/queens/{{invalid_queen_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"hives",
+						"{{hive_id_1}}",
+						"queens",
+						"{{invalid_queen_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "assign queen with invalid hive & queen id",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"404 status code\", function () {",
+							"   //Check for error code 404",
+							"   pm.response.to.have.status(404);",
+							"});",
+							"",
+							"pm.test(\"404 error message\", function () {",
+							"     pm.expect(pm.response.json()[\"Error\"]).to.equal('Hive and/or queen not found');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/hives/{{invalid_hive_id}}/queens/{{invalid_queen_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"hives",
+						"{{invalid_hive_id}}",
+						"queens",
+						"{{invalid_queen_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "queen already assigned",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"403 status code\", function () {",
+							"   //Check for error code 403",
+							"   pm.response.to.have.status(403);",
+							"});",
+							"",
+							"pm.test(\"403 error message\", function () {",
+							"     //Check for error code 403",
+							"     pm.expect(pm.response.json()[\"Error\"]).to.equal('Queen is already assigned');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/hives/{{hive_id_1}}/queens/{{queen_id_1}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"hives",
+						"{{hive_id_1}}",
+						"queens",
+						"{{queen_id_1}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get hive after queen assigned",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"200 status code\", function () {",
+							"    //Check for appropriate 200 status code",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"",
+							"pm.test(\"content besides queens is valid\", function () {",
+							"    pm.expect(pm.response.json()[\"hiveName\"]).to.equal(\"HV762\");",
+							"    pm.expect(pm.response.json()[\"structureType\"]).to.equal(\"Top bar Hive\");",
+							"    pm.expect(pm.response.json()[\"colonySize\"]).to.equal(4500);",
+							"    ",
+							"    const hive_id = pm.environment.get(\"hive_id_1\");",
+							"    const app_url = pm.environment.get(\"app_url\");",
+							"    pm.expect(pm.response.json()[\"self\"]).to.equal(app_url + \"/hives/\" + hive_id);",
+							"});",
+							"",
+							"pm.test(\"queens content is valid\", function () {",
+							"   const self_url = pm.environment.get(\"app_url\") + \"/queens/\" + pm.response.json()[\"queen\"][\"id\"];",
+							"   pm.expect(pm.response.json()[\"queen\"][\"self\"]).to.eq(self_url);",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/hives/{{hive_id_1}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"hives",
+						"{{hive_id_1}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get queen after assigned to hive",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"200 status code\", function () {",
+							"    //Check for appropriate status code 200",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"",
+							"pm.test(\"content besides hive is valid\", function () {",
+							"    pm.expect(pm.response.json()[\"name\"]).to.equal(\"Elizabeth\");",
+							"    pm.expect(pm.response.json()[\"species\"]).to.equal(\"Killer Bee\");",
+							"    pm.expect(pm.response.json()[\"age\"]).to.equal(1);",
+							"    ",
+							"    const queen_id = pm.environment.get(\"queen_id_1\");",
+							"    const app_url = pm.environment.get(\"app_url\");",
+							"    pm.expect(pm.response.json()[\"self\"]).to.equal(app_url + \"/queens/\" + queen_id);",
+							"});",
+							"",
+							"pm.test(\"hive content is valid\", function () {",
+							"    //Check for appropriate content for carrier including self attribute",
+							"    const self_url = pm.environment.get(\"app_url\") + \"/hives/\" + pm.response.json()[\"hive\"][\"id\"];",
+							"    pm.expect(pm.response.json()[\"hive\"][\"self\"]).to.eq(self_url);",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/queens/{{queen_id_1}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"queens",
+						"{{queen_id_1}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get users",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"200 status code\", function () {",
+							"    //Check for appropriate 200 status code",
+							"    pm.response.to.have.status(200);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/users",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"users"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "create 2nd user's hive",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const hive_id = pm.response.json()[\"id\"];\r",
+							"\r",
+							"// assign the hive_id of the newly created hive to an environment variable\r",
+							"pm.environment.set(\"hive_id_5\", hive_id)\r",
+							"\r",
+							"pm.test(\"response has status 201\", function () {\r",
+							"    pm.response.to.have.status(201);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"all hive fields are correct\", function () {\r",
+							"    pm.expect(pm.response.json()[\"hiveName\"]).to.equal(\"HV732\");\r",
+							"    pm.expect(pm.response.json()[\"structureType\"]).to.equal(\"Clay Hive\");\r",
+							"    pm.expect(pm.response.json()[\"colonySize\"]).to.equal(73000);\r",
+							"    \r",
+							"    const app_url = pm.environment.get(\"app_url\");\r",
+							"    pm.expect(pm.response.json()[\"self\"]).to.equal(app_url + \"/hives/\" + hive_id);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt2}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"hiveName\": \"HV732\",\r\n    \"structureType\": \"Clay Hive\",\r\n    \"colonySize\": 73000\r\n}"
+				},
+				"url": {
+					"raw": "{{app_url}}/hives",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"hives"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get 2nd user's hive",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"response has status 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"all hive fields are correct\", function () {\r",
+							"    pm.expect(pm.response.json()[\"hiveName\"]).to.equal(\"HV732\");\r",
+							"    pm.expect(pm.response.json()[\"structureType\"]).to.equal(\"Clay Hive\");\r",
+							"    pm.expect(pm.response.json()[\"colonySize\"]).to.equal(73000);\r",
+							"    \r",
+							"    const hive_id = pm.environment.get(\"hive_id_5\");\r",
+							"    const app_url = pm.environment.get(\"app_url\");\r",
+							"    pm.expect(pm.response.json()[\"self\"]).to.equal(app_url + \"/hives/\" + hive_id);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt2}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/hives/{{hive_id_5}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"hives",
+						"{{hive_id_5}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "1st user attempts to get 2nd user's hive",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"403 status code\", function () {\r",
+							"    pm.response.to.have.status(403);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"403 error message\", function () {\r",
+							"     //Check for appropriate error message\r",
+							"     pm.expect(pm.response.json()[\"Error\"]).to.eq('Hive has a different owner');\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/hives/{{hive_id_5}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"hives",
+						"{{hive_id_5}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "remove queen from hive",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"204 status code\", function () {",
+							"    //Check for apprropriate status code 204",
+							"    pm.response.to.have.status(204);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/hives/{{hive_id_1}}/queens/{{queen_id_1}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"hives",
+						"{{hive_id_1}}",
+						"queens",
+						"{{queen_id_1}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get queen after removed from hive",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"200 status code\", function () {",
+							"    //Check if status code is 200",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"content is valid\", function () {",
+							"    pm.expect(pm.response.json()[\"name\"]).to.equal(\"Elizabeth\");",
+							"    pm.expect(pm.response.json()[\"species\"]).to.equal(\"Killer Bee\");",
+							"    pm.expect(pm.response.json()[\"age\"]).to.equal(1);",
+							"    pm.expect(pm.response.json()[\"hive\"]).to.equal(null);",
+							"    ",
+							"    const queen_id = pm.environment.get(\"queen_id_1\");",
+							"    const app_url = pm.environment.get(\"app_url\");",
+							"    pm.expect(pm.response.json()[\"self\"]).to.equal(app_url + \"/queens/\" + queen_id);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/queens/{{queen_id_1}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"queens",
+						"{{queen_id_1}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get hive after queen removed",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"200 status code\", function () {",
+							"    //Check for appropriate status code",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"content is valid\", function () {",
+							"    pm.expect(pm.response.json()[\"hiveName\"]).to.equal(\"HV762\");",
+							"    pm.expect(pm.response.json()[\"structureType\"]).to.equal(\"Top bar Hive\");",
+							"    pm.expect(pm.response.json()[\"colonySize\"]).to.equal(4500);",
+							"    pm.expect(pm.response.json()[\"queen\"]).to.equal(null);",
+							"    ",
+							"    const hive_id = pm.environment.get(\"hive_id_1\");",
+							"    const app_url = pm.environment.get(\"app_url\");",
+							"    pm.expect(pm.response.json()[\"self\"]).to.equal(app_url + \"/hives/\" + hive_id);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/hives/{{hive_id_1}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"hives",
+						"{{hive_id_1}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "remove queen - queen not in this hive",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"403 status code\", function () {",
+							"    //Check for appropriate 403 status code",
+							"    pm.response.to.have.status(403);",
+							"});",
+							"",
+							"pm.test(\"403 error message\", function () {",
+							"     //Check for appropriate error message",
+							"     pm.expect(pm.response.json()[\"Error\"]).to.eq('Queen is not associated with this hive');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/hives/{{hive_id_1}}/queens/{{queen_id_2}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"hives",
+						"{{hive_id_1}}",
+						"queens",
+						"{{queen_id_2}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "remove queen with invalid hive id",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"404 status code\", function () {",
+							"    //Check for appropriate 404 status code",
+							"    pm.response.to.have.status(404);",
+							"});",
+							"",
+							"pm.test(\"404 error message\", function () {",
+							"     //Check for appropriate error message",
+							"     pm.expect(pm.response.json()[\"Error\"]).to.eq('Hive and/or queen not found');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/hives/{{invalid_hive_id}}/queens/{{queen_id_1}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"hives",
+						"{{invalid_hive_id}}",
+						"queens",
+						"{{queen_id_1}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "remove queen with invalid queen id",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"403 status code\", function () {",
+							"    //Check for appropriate 404 status code",
+							"    pm.response.to.have.status(403);",
+							"});",
+							"",
+							"pm.test(\"404 error message\", function () {",
+							"     //Check for appropriate error message",
+							"     pm.expect(pm.response.json()[\"Error\"]).to.eq('Queen is not associated with this hive');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/hives/{{hive_id_1}}/queens/{{invalid_queen_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"hives",
+						"{{hive_id_1}}",
+						"queens",
+						"{{invalid_queen_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "remove queen without authentication",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"401 status code\", function () {",
+							"    //Check for appropriate 404 status code",
+							"    pm.response.to.have.status(401);",
+							"});",
+							"",
+							"pm.test(\"401 error message\", function () {",
+							"     //Check for appropriate error message",
+							"     pm.expect(pm.response.json()[\"Error\"]).to.eq('Missing or invalid JWT');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/hives/{{hive_id_1}}/queens/{{queen_id_1}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"hives",
+						"{{hive_id_1}}",
+						"queens",
+						"{{queen_id_1}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "re-assign queen_1 to hive_1",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"204 status code\", function () {",
+							"    //Check for appropriate 204 status code",
+							"    pm.response.to.have.status(204);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/hives/{{hive_id_1}}/queens/{{queen_id_1}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"hives",
+						"{{hive_id_1}}",
+						"queens",
+						"{{queen_id_1}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "delete hive_1 with queen_1 assigned",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"204 no content\", function () {",
+							"    pm.response.to.have.status(204);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/hives/{{hive_id_1}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"hives",
+						"{{hive_id_1}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get queen_1 after hive deleted",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"200 status code\", function () {",
+							"    //Check for appropriate 200 status code",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"content is valid\", function () {",
+							"    pm.expect(pm.response.json()[\"name\"]).to.equal(\"Elizabeth\");",
+							"    pm.expect(pm.response.json()[\"species\"]).to.equal(\"Killer Bee\");",
+							"    pm.expect(pm.response.json()[\"age\"]).to.equal(1);",
+							"    pm.expect(pm.response.json()[\"hive\"]).to.equal(null);",
+							"    ",
+							"    const queen_id = pm.environment.get(\"queen_id_1\");",
+							"    const app_url = pm.environment.get(\"app_url\");",
+							"    pm.expect(pm.response.json()[\"self\"]).to.equal(app_url + \"/queens/\" + queen_id);",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/queens/{{queen_id_1}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"queens",
+						"{{queen_id_1}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "assign queen_2 to hive_2",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"204 status code\", function () {",
+							"    //Check for appropriate 204 status code",
+							"    pm.response.to.have.status(204);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/hives/{{hive_id_2}}/queens/{{queen_id_2}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"hives",
+						"{{hive_id_2}}",
+						"queens",
+						"{{queen_id_2}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "delete queen_2",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"response has status 204\", function () {\r",
+							"    pm.response.to.have.status(204);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/queens/{{queen_id_2}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"queens",
+						"{{queen_id_2}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get hive_2 after queen_2 deleted",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"200 status code\", function () {",
+							"    //Check for appropriate 200 status code",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"content is valid\", function () {",
+							"    pm.expect(pm.response.json()[\"hiveName\"]).to.equal(\"HV212\");",
+							"    pm.expect(pm.response.json()[\"structureType\"]).to.equal(\"Horizontal Hive\");",
+							"    pm.expect(pm.response.json()[\"colonySize\"]).to.equal(5400);",
+							"    pm.expect(pm.response.json()[\"queen\"]).to.equal(null);",
+							"    ",
+							"    const hive_id = pm.environment.get(\"hive_id_2\");",
+							"    const app_url = pm.environment.get(\"app_url\");",
+							"    pm.expect(pm.response.json()[\"self\"]).to.equal(app_url + \"/hives/\" + hive_id);",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/hives/{{hive_id_2}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"hives",
+						"{{hive_id_2}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "delete hive invalid id",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"response has status 404\", function () {\r",
+							"    pm.response.to.have.status(404);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"validate error message\", function () {\r",
+							"    pm.expect(pm.response.json()[\"Error\"]).to.equal('Hive and/or queen not found');\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/hives/{{invalid_hive_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"hives",
+						"{{invalid_hive_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "delete queen invalid id",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"response has status 404\", function () {\r",
+							"    pm.response.to.have.status(404);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"validate error message\", function () {\r",
+							"    pm.expect(pm.response.json()[\"Error\"]).to.equal('No queen with this queen_id exists');\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/queens/{{invalid_queen_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"queens",
+						"{{invalid_queen_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "delete hive_2",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"response has status 204\", function () {\r",
+							"    pm.response.to.have.status(204);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/hives/{{hive_id_2}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"hives",
+						"{{hive_id_2}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "delete hive_3",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"response has status 204\", function () {\r",
+							"    pm.response.to.have.status(204);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/hives/{{hive_id_3}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"hives",
+						"{{hive_id_3}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "delete hive_4",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"response has status 204\", function () {\r",
+							"    pm.response.to.have.status(204);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/hives/{{hive_id_4}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"hives",
+						"{{hive_id_4}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "delete hive_5",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"response has status 204\", function () {\r",
+							"    pm.response.to.have.status(204);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt2}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/hives/{{hive_id_5}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"hives",
+						"{{hive_id_5}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "delete queen_1",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"response has status 204\", function () {\r",
+							"    pm.response.to.have.status(204);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/queens/{{queen_id_1}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"queens",
+						"{{queen_id_1}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "delete queen_3",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"response has status 204\", function () {\r",
+							"    pm.response.to.have.status(204);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/queens/{{queen_id_3}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"queens",
+						"{{queen_id_3}}"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	]
+}

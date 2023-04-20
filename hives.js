@@ -208,15 +208,17 @@ function deleteHive (req, hiveId) {
         .then(hive => {
             if (hive[0] == null) {
                 throw new Error('Hive and/or queen not found');
-            } else {
-                
-                // remove association with a queen before deleting
-                if (hive[0].queen != null) {
-                    removeQueen(req, hiveId, hive[0].queen.id);
-                }
-                // delete the hive
-                return datastore.delete(hiveKey);
             }
+
+            // remove association with a queen before deleting
+            if (hive[0].queen != null) {
+                return removeQueen(req, hiveId, hive[0].queen.id);
+            }
+            return;
+        })
+        .then(() => {
+            // delete the hive
+            return datastore.delete(hiveKey);
         })
         .catch(error => {
             throw error;
@@ -395,7 +397,7 @@ function removeQueen (req, hiveId, queenId) {
             };
         })
         .then(() => {
-            // Save the hive entity with the updated queens array
+            // Save the hive entity with the updated queen array
             return datastore.save(foundHive[0]);
         })
         .catch(error => {
